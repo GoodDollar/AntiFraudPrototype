@@ -1,13 +1,19 @@
 declare var ZoomSDK: any;
 
-const licenseKey = process.env.REACT_APP_ZOOM_LICENSE_KEY;
+const licenseKey = process.env.REACT_APP_ZOOM_LICENSE_KEY || "";
+
+interface ZoomResult {
+  status: any;
+  sessionId: string;
+  facemap: Blob;
+}
 
 export const initialize = (): Promise<void> =>
   new Promise(resolve => {
     ZoomSDK.initialize(licenseKey, () => ZoomSDK.preload(() => resolve()));
   });
 
-export const prepareInterface = (videoTrack: MediaStreamTrack): Promise<void> =>
+export const capture = (videoTrack: MediaStreamTrack): Promise<ZoomResult> =>
   new Promise((resolve, reject) => {
     ZoomSDK.prepareInterface(
       "zoom-interface-container",
@@ -24,14 +30,39 @@ export const prepareInterface = (videoTrack: MediaStreamTrack): Promise<void> =>
           );
         }
 
-        const zoomSession = new ZoomSDK.ZoomSession(
-          (x: any) => console.log(x),
-          videoTrack
-        );
+        const zoomSession = new ZoomSDK.ZoomSession((result: ZoomResult) => {
+          if (
+            result.status !==
+              ZoomSDK.ZoomTypes.ZoomCaptureResult.SessionCompleted ||
+            !result.facemap
+          ) {
+            reject(new Error(`unsuccessful capture result: ${result.status}`));
+          }
+
+          resolve(result);
+        }, videoTrack);
 
         zoomSession.capture();
-
-        resolve();
       }
     );
   });
+
+export const check = async (result: ZoomResult): Promise<any> => {
+  const data = new FormData();
+  data.append("sessionId", result.sessionId);
+  data.append("facemap", result.facemap);
+
+  const response = await fetch(
+    "https://api.zoomauth.com/api/v1/biometrics/liveness",
+    {
+      method: "POST",
+      body: data,
+      headers: {
+        "X-App-Token": licenseKey,
+        "X-User-Agent": ZoomSDK.createZoomAPIUserAgentString(result.facemap)
+      }
+    }
+  );
+
+  return response.json();
+};

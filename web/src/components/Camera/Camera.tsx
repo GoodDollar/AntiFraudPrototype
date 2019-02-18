@@ -1,7 +1,9 @@
 import React, { Component, createRef } from "react";
 
 interface CameraProps {
-  onLoad: (track: MediaStreamTrack, width: number, height: number) => void;
+  width: number;
+  height: number;
+  onLoad: (track: MediaStreamTrack) => void;
 }
 
 export class Camera extends Component<CameraProps> {
@@ -16,8 +18,8 @@ export class Camera extends Component<CameraProps> {
     this.stream = await window.navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        width: { exact: 1280 },
-        height: { exact: 720 },
+        width: { exact: this.props.width },
+        height: { exact: this.props.height },
         facingMode: "user"
       }
     });
@@ -31,15 +33,7 @@ export class Camera extends Component<CameraProps> {
     this.videoPlayerRef.current.srcObject = this.stream;
 
     this.videoPlayerRef.current.addEventListener("loadeddata", () => {
-      if (!this.videoPlayerRef.current) {
-        throw new Error("No video player found");
-      }
-
-      this.props.onLoad(
-        videoTrack,
-        this.videoPlayerRef.current.width,
-        this.videoPlayerRef.current.height
-      );
+      this.props.onLoad(videoTrack);
     });
   }
 
@@ -50,6 +44,10 @@ export class Camera extends Component<CameraProps> {
         autoPlay
         playsInline
         ref={this.videoPlayerRef}
+        style={{
+          width: `${this.props.width}px`,
+          height: `${this.props.height}px`
+        }}
       />
     );
   }
