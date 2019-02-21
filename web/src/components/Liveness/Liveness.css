@@ -1,5 +1,5 @@
 #zoom-parent-container {
-  margin: 0 auto 1rem;
+  margin: 0 0 1rem;
 }
 
 #zoom-video-element {
@@ -11,15 +11,4 @@
 
 #zoom-interface-container {
   position: absolute;
-}
-
-.Liveness {
-  text-align: center;
-  font-size: 2rem;
-}
-
-.Liveness__trigger {
-  display: block;
-  margin: 0 auto 1rem;
-  font-size: 2rem;
 }

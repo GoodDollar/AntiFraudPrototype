@@ -1,24 +1,29 @@
 import React, { Component } from "react";
+import uuid from "uuid";
 import { Camera } from "../Camera/Camera";
-import { capture, initialize, check } from "../../util/Zoom";
+import { capture, initialize, enroll, EnrollmentResult } from "../../util/Zoom";
 
 import "./Liveness.css";
+import { Button } from "../Button/Button";
+
+interface LivenessProps {
+  name: string;
+  onEnroll: (enrollmentResult: EnrollmentResult) => void;
+}
 
 interface LivenessState {
   cameraLoaded: boolean;
   captureInProgress: boolean;
   captureOutcome: any;
-  checkInProgress: boolean;
-  checkOutcome: any;
+  enrollInProgress: boolean;
 }
 
-export class Liveness extends Component<{}, LivenessState> {
+export class Liveness extends Component<LivenessProps, LivenessState> {
   state: LivenessState = {
     cameraLoaded: false,
     captureInProgress: false,
     captureOutcome: null,
-    checkInProgress: false,
-    checkOutcome: null
+    enrollInProgress: false
   };
 
   private readonly width = 1280;
@@ -41,8 +46,7 @@ export class Liveness extends Component<{}, LivenessState> {
     this.setState({
       captureInProgress: true,
       captureOutcome: null,
-      checkInProgress: false,
-      checkOutcome: null
+      enrollInProgress: false
     });
 
     const captureOutcome = await capture(this.track);
@@ -50,20 +54,23 @@ export class Liveness extends Component<{}, LivenessState> {
     this.setState({
       captureInProgress: false,
       captureOutcome,
-      checkInProgress: true
+      enrollInProgress: true
     });
 
-    const checkOutcome = await check(captureOutcome);
+    const enrollId = uuid.v4();
+
+    const enrollOutcome = await enroll(captureOutcome, enrollId);
 
     this.setState({
-      checkInProgress: false,
-      checkOutcome
+      enrollInProgress: false
     });
+
+    this.props.onEnroll(enrollOutcome);
   }
 
   render() {
     return (
-      <div className="Liveness">
+      <div>
         <div
           id="zoom-parent-container"
           style={{
@@ -82,13 +89,10 @@ export class Liveness extends Component<{}, LivenessState> {
 
         {this.state.cameraLoaded &&
           !this.state.captureInProgress &&
-          !this.state.checkInProgress && (
-            <button
-              className="Liveness__trigger"
-              onClick={this.runCheck.bind(this)}
-            >
-              Start
-            </button>
+          !this.state.enrollInProgress && (
+            <Button onClick={this.runCheck.bind(this)}>
+              Start Face Verification
+            </Button>
           )}
 
         {this.state.captureInProgress && <div>Capture in progress...</div>}
@@ -99,14 +103,7 @@ export class Liveness extends Component<{}, LivenessState> {
           </div>
         )}
 
-        {this.state.checkInProgress && <div>Check in progress...</div>}
-
-        {this.state.checkOutcome && (
-          <div>
-            <strong>Check outcome:</strong>{" "}
-            {JSON.stringify(this.state.checkOutcome.data)}
-          </div>
-        )}
+        {this.state.enrollInProgress && <div>Enroll in progress...</div>}
       </div>
     );
   }

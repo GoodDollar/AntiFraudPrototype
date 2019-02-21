@@ -2,10 +2,25 @@ declare var ZoomSDK: any;
 
 const licenseKey = process.env.REACT_APP_ZOOM_LICENSE_KEY || "";
 
-interface ZoomResult {
+export interface ZoomResult {
   status: any;
   sessionId: string;
   facemap: Blob;
+}
+
+export interface EnrollmentResult {
+  meta: {
+    ok: boolean;
+    message: string;
+  };
+  data: {
+    sessionId: string;
+    enrollmentIdentifier: string;
+    livenessResult: string;
+    livenessScore: number;
+    glassesScore: number;
+    glassesDecision: boolean;
+  };
 }
 
 export const initialize = (): Promise<void> =>
@@ -47,19 +62,46 @@ export const capture = (videoTrack: MediaStreamTrack): Promise<ZoomResult> =>
     );
   });
 
-export const check = async (result: ZoomResult): Promise<any> => {
+export const enroll = async (
+  result: ZoomResult,
+  id: string
+): Promise<EnrollmentResult> => {
   const data = new FormData();
+  data.append("enrollmentIdentifier", id);
   data.append("sessionId", result.sessionId);
   data.append("facemap", result.facemap);
 
   const response = await fetch(
-    "https://api.zoomauth.com/api/v1/biometrics/liveness",
+    "https://api.zoomauth.com/api/v1/biometrics/enrollment",
     {
       method: "POST",
       body: data,
       headers: {
         "X-App-Token": licenseKey,
         "X-User-Agent": ZoomSDK.createZoomAPIUserAgentString(result.facemap)
+      }
+    }
+  );
+
+  const responseJson = await response.json();
+
+  return { ...responseJson, sessionId: result.sessionId };
+};
+
+export const search = async ({
+  data: { enrollmentIdentifier, sessionId }
+}: EnrollmentResult): Promise<any> => {
+  const data = new FormData();
+  data.append("enrollmentIdentifier", enrollmentIdentifier);
+  data.append("sessionId", sessionId);
+
+  const response = await fetch(
+    "https://api.zoomauth.com/api/v1/biometrics/search",
+    {
+      method: "POST",
+      body: data,
+      headers: {
+        "X-App-Token": licenseKey
       }
     }
   );
