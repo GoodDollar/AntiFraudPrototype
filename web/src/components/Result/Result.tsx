@@ -6,18 +6,22 @@ interface ResultProps {
 }
 
 interface ResultState {
-  matchResults: any;
+  searchResults?: any;
 }
 
-export class Result extends Component<ResultProps> {
+export class Result extends Component<ResultProps, ResultState> {
+  state: ResultState = {
+    searchResults: null
+  };
+
   async componentDidMount() {
     if (!this.didPassLiveness) {
       return;
     }
 
-    // const searchResults = await search(this.props.enrollmentResult);
+    const searchResults = await search(this.props.enrollmentResult);
 
-    // console.log(searchResults);
+    this.setState({ searchResults });
   }
 
   render() {
@@ -31,6 +35,14 @@ export class Result extends Component<ResultProps> {
         {this.enrollmentError && (
           <div>
             <strong>Enrollment Error:</strong> {this.enrollmentError}
+          </div>
+        )}
+
+        {this.state.searchResults && (
+          <div>
+            <strong>Search Results:</strong>
+            <br />
+            <code>${JSON.stringify(this.state.searchResults, null, 2)}</code>
           </div>
         )}
       </div>

@@ -14,13 +14,13 @@ export interface EnrollmentResult {
     message: string;
   };
   data: {
-    sessionId: string;
     enrollmentIdentifier: string;
     livenessResult: string;
     livenessScore: number;
     glassesScore: number;
     glassesDecision: boolean;
   };
+  sessionId: string;
 }
 
 export const initialize = (): Promise<void> =>
@@ -89,7 +89,8 @@ export const enroll = async (
 };
 
 export const search = async ({
-  data: { enrollmentIdentifier, sessionId }
+  data: { enrollmentIdentifier },
+  sessionId
 }: EnrollmentResult): Promise<any> => {
   const data = new FormData();
   data.append("enrollmentIdentifier", enrollmentIdentifier);
