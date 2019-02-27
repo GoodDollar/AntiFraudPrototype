@@ -12,6 +12,7 @@ class UserDashboard < Administrate::BaseDashboard
     name: Field::String,
     email: Field::String,
     zoom_enrollment_id: Field::String,
+    audit_trail_image: AuditTrailImageField,
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
   }.freeze
@@ -25,7 +26,7 @@ class UserDashboard < Administrate::BaseDashboard
     :id,
     :name,
     :email,
-    :zoom_enrollment_id,
+    :audit_trail_image
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -35,6 +36,7 @@ class UserDashboard < Administrate::BaseDashboard
     :name,
     :email,
     :zoom_enrollment_id,
+    :audit_trail_image,
     :created_at,
     :updated_at,
   ].freeze
@@ -45,7 +47,6 @@ class UserDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = [
     :name,
     :email,
-    :zoom_enrollment_id,
   ].freeze
 
   # Overwrite this method to customize how users are displayed
