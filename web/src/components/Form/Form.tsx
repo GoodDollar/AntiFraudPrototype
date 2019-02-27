@@ -3,18 +3,24 @@ import styled from "styled-components";
 import { Button } from "../Button/Button";
 
 interface FormProps {
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, email: string) => void;
 }
 
 export class Form extends Component<FormProps> {
   private readonly nameField = createRef<HTMLInputElement>();
+  private readonly emailField = createRef<HTMLInputElement>();
 
   render() {
     return (
       <form onSubmit={this.onSubmit.bind(this)}>
         <Label>
           Name
-          <TextInput ref={this.nameField} />
+          <TextInput ref={this.nameField} required />
+        </Label>
+
+        <Label>
+          Email
+          <TextInput ref={this.emailField} type="email" required />
         </Label>
 
         <Button type="submit">Register</Button>
@@ -26,7 +32,9 @@ export class Form extends Component<FormProps> {
     e.preventDefault();
 
     const name = (this.nameField.current && this.nameField.current.value) || "";
-    this.props.onSubmit(name);
+    const email =
+      (this.emailField.current && this.emailField.current.value) || "";
+    this.props.onSubmit(name, email);
   }
 }
 

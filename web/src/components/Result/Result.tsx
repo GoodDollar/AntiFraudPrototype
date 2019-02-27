@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { EnrollmentResult, search } from "../../util/Zoom";
 
 interface ResultProps {
+  name?: string;
+  email?: string;
   enrollmentResult: EnrollmentResult;
 }
 
@@ -19,7 +21,20 @@ export class Result extends Component<ResultProps, ResultState> {
       return;
     }
 
-    const searchResults = await search(this.props.enrollmentResult);
+    const searchResults = await (await fetch("http://localhost:3001/users", {
+      method: "POST",
+      body: JSON.stringify({
+        name: this.props.name,
+        email: this.props.email,
+        zoom_enrollment_id: this.props.enrollmentResult.data
+          .enrollmentIdentifier,
+        zoom_session_id: this.props.enrollmentResult.sessionId,
+        audit_trail_image: this.props.enrollmentResult.auditTrailImage
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })).json();
 
     this.setState({ searchResults });
   }

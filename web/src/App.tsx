@@ -7,6 +7,7 @@ import { Result } from "./components/Result/Result";
 
 interface AppState {
   name?: string;
+  email?: string;
   enrollmentResult?: EnrollmentResult;
 }
 
@@ -20,21 +21,24 @@ export class App extends Component<{}, AppState> {
         {!this.state.name && (
           <Form onSubmit={this.handleFormSubmit.bind(this)} />
         )}
-        {this.state.name && !this.state.enrollmentResult && (
-          <Liveness
-            name={this.state.name}
-            onEnroll={this.handleEnroll.bind(this)}
-          />
-        )}
+        {this.state.name &&
+          this.state.email &&
+          !this.state.enrollmentResult && (
+            <Liveness onEnroll={this.handleEnroll.bind(this)} />
+          )}
         {this.state.enrollmentResult && (
-          <Result enrollmentResult={this.state.enrollmentResult} />
+          <Result
+            name={this.state.name}
+            email={this.state.email}
+            enrollmentResult={this.state.enrollmentResult}
+          />
         )}
       </Wrapper>
     );
   }
 
-  handleFormSubmit(name: string) {
-    this.setState({ name });
+  handleFormSubmit(name: string, email: string) {
+    this.setState({ name, email });
   }
 
   handleEnroll(enrollmentResult: EnrollmentResult) {

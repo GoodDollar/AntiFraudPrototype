@@ -6,6 +6,9 @@ export interface ZoomResult {
   status: any;
   sessionId: string;
   facemap: Blob;
+  faceMetrics: {
+    auditTrail: string[];
+  };
 }
 
 export interface EnrollmentResult {
@@ -21,6 +24,7 @@ export interface EnrollmentResult {
     glassesDecision: boolean;
   };
   sessionId: string;
+  auditTrailImage: string;
 }
 
 export const initialize = (): Promise<void> =>
@@ -70,6 +74,10 @@ export const enroll = async (
   data.append("enrollmentIdentifier", id);
   data.append("sessionId", result.sessionId);
   data.append("facemap", result.facemap);
+  data.append(
+    "auditTrailImage",
+    await auditTrailImageToBlob(result.faceMetrics.auditTrail[0])
+  );
 
   const response = await fetch(
     "https://api.zoomauth.com/api/v1/biometrics/enrollment",
@@ -85,7 +93,10 @@ export const enroll = async (
 
   const responseJson = await response.json();
 
-  return { ...responseJson, sessionId: result.sessionId };
+  return {
+    ...responseJson,
+    sessionId: result.sessionId
+  };
 };
 
 export const search = async ({
@@ -109,3 +120,6 @@ export const search = async ({
 
   return response.json();
 };
+
+const auditTrailImageToBlob = async (auditTrailImage: string): Promise<Blob> =>
+  (await fetch(auditTrailImage)).blob();
