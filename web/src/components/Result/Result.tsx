@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { EnrollmentResult, search } from "../../util/Zoom";
+import { Error } from "../Error/Error";
 
 interface ResultProps {
   name?: string;
@@ -8,57 +9,76 @@ interface ResultProps {
 }
 
 interface ResultState {
-  searchResults?: any;
+  registerResult?: {
+    errors?: string[];
+    id?: string;
+    name?: string;
+    email?: string;
+  };
 }
 
 export class Result extends Component<ResultProps, ResultState> {
-  state: ResultState = {
-    searchResults: null
-  };
+  state: ResultState = {};
 
   async componentDidMount() {
     if (!this.didPassLiveness) {
       return;
     }
 
-    const searchResults = await (await fetch("http://localhost:3001/users", {
-      method: "POST",
-      body: JSON.stringify({
-        name: this.props.name,
-        email: this.props.email,
-        zoom_enrollment_id: this.props.enrollmentResult.data
-          .enrollmentIdentifier,
-        zoom_session_id: this.props.enrollmentResult.sessionId,
-        audit_trail_image: this.props.enrollmentResult.auditTrailImage
-      }),
-      headers: {
-        "Content-Type": "application/json"
+    const registerResult = await (await fetch(
+      `${process.env.REACT_APP_API_URL}/users`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: this.props.name,
+          email: this.props.email,
+          zoom_enrollment_id: this.props.enrollmentResult.data
+            .enrollmentIdentifier,
+          zoom_session_id: this.props.enrollmentResult.sessionId,
+          audit_trail_image: this.props.enrollmentResult.auditTrailImage
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
       }
-    })).json();
+    )).json();
 
-    this.setState({ searchResults });
+    this.setState({ registerResult });
   }
 
   render() {
     return (
       <div>
-        <div>
-          <strong>Liveness Result:</strong>{" "}
-          {this.didPassLiveness ? "Passed" : "Uncertain"}
-        </div>
-
-        {this.enrollmentError && (
-          <div>
-            <strong>Enrollment Error:</strong> {this.enrollmentError}
-          </div>
+        {!this.didPassLiveness && (
+          <Error
+            errors={[
+              "Your registration attempt did not pass the liveness test"
+            ]}
+          />
         )}
 
-        {this.state.searchResults && (
-          <div>
-            <strong>Search Results:</strong>
-            <br />
-            <code>${JSON.stringify(this.state.searchResults, null, 2)}</code>
-          </div>
+        {this.didPassLiveness && !this.state.registerResult && (
+          <p>Registering...</p>
+        )}
+
+        {this.state.registerResult && this.state.registerResult.errors && (
+          <Error errors={this.state.registerResult.errors} />
+        )}
+
+        {this.state.registerResult && !this.state.registerResult.errors && (
+          <>
+            <p>Your registration was successful.</p>
+
+            <p>
+              <strong>ID:</strong> {this.state.registerResult.id}
+            </p>
+            <p>
+              <strong>Name:</strong> {this.state.registerResult.name}
+            </p>
+            <p>
+              <strong>Email:</strong> {this.state.registerResult.email}
+            </p>
+          </>
         )}
       </div>
     );
