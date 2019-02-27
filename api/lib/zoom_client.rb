@@ -1,7 +1,7 @@
 class ZoomClient
   ZoomError = Class.new(StandardError)
 
-  MATCH_THRESHOLD = 90.freeze
+  MATCH_THRESHOLD = 80.freeze
 
   include HTTParty
   base_uri('https://api.zoomauth.com/api/v1/biometrics')
