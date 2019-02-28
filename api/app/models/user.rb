@@ -4,6 +4,6 @@ class User < ApplicationRecord
   validates :zoom_enrollment_id, presence: true, uniqueness: true
 
   def audit_trail_image
-    ZoomClient.new.audit_trail_image(enrollment_id: zoom_enrollment_id).tap { |i| puts i }
+    ZoomClient.new.audit_trail_image(enrollment_id: zoom_enrollment_id)
   end
 end
