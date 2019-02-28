@@ -6,49 +6,103 @@ interface CameraProps {
   onLoad: (track: MediaStreamTrack) => void;
 }
 
-export class Camera extends Component<CameraProps> {
+interface CameraState {
+  error?: Error;
+}
+
+export class Camera extends Component<CameraProps, CameraState> {
+  state: CameraState = {};
+
   private videoPlayerRef = createRef<HTMLVideoElement>();
-  private stream: MediaStream | null = null;
 
-  async componentDidMount() {
-    await this.getUserMedia();
-  }
-
-  async getUserMedia() {
-    this.stream = await window.navigator.mediaDevices.getUserMedia({
+  private readonly acceptableConstraints: MediaStreamConstraints[] = [
+    {
       audio: false,
       video: {
         width: { exact: 1280 },
         height: { exact: 720 },
         facingMode: "user"
       }
-    });
-
-    if (!this.videoPlayerRef.current) {
-      throw new Error("No video player found");
+    },
+    {
+      audio: false,
+      video: {
+        width: { exact: 640 },
+        height: { exact: 360 },
+        facingMode: "user"
+      }
+    },
+    {
+      audio: false,
+      video: {
+        width: { exact: 1920 },
+        height: { exact: 1080 },
+        facingMode: "user"
+      }
     }
+  ];
+  private currentConstraintIndex = 0;
 
-    const videoTrack = this.stream.getVideoTracks()[0];
+  async componentDidMount() {
+    await this.getUserMedia();
+  }
 
-    this.videoPlayerRef.current.srcObject = this.stream;
+  async getStream(): Promise<MediaStream> {
+    const constraints = this.acceptableConstraints[this.currentConstraintIndex];
 
-    this.videoPlayerRef.current.addEventListener("loadeddata", () => {
-      this.props.onLoad(videoTrack);
-    });
+    try {
+      return await window.navigator.mediaDevices.getUserMedia(constraints);
+    } catch (e) {
+      this.currentConstraintIndex++;
+
+      if (this.currentConstraintIndex >= this.acceptableConstraints.length) {
+        throw new Error("Possible constraints exhausted");
+      }
+
+      return this.getStream();
+    }
+  }
+
+  async getUserMedia() {
+    try {
+      const stream = await this.getStream();
+
+      if (!this.videoPlayerRef.current) {
+        throw new Error("No video player found");
+      }
+
+      const videoTrack = stream.getVideoTracks()[0];
+
+      this.videoPlayerRef.current.srcObject = stream;
+
+      this.videoPlayerRef.current.addEventListener("loadeddata", () => {
+        this.props.onLoad(videoTrack);
+      });
+    } catch (error) {
+      this.setState({ error });
+    }
   }
 
   render() {
     return (
-      <video
-        id="zoom-video-element"
-        autoPlay
-        playsInline
-        ref={this.videoPlayerRef}
-        style={{
-          width: `${this.props.width}px`,
-          height: `${this.props.height}px`
-        }}
-      />
+      <>
+        {this.state.error && (
+          <p>
+            <strong>Error:</strong> {this.state.error.message}
+          </p>
+        )}
+
+        <video
+          id="zoom-video-element"
+          autoPlay
+          playsInline
+          ref={this.videoPlayerRef}
+          style={{
+            width: `${this.props.width}px`,
+            height: `${this.props.height}px`
+          }}
+        />
+      </>
     );
   }
 }
