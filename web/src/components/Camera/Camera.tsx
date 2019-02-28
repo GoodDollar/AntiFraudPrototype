@@ -18,8 +18,8 @@ export class Camera extends Component<CameraProps> {
     this.stream = await window.navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        width: { exact: this.props.width },
-        height: { exact: this.props.height },
+        width: { exact: 1280 },
+        height: { exact: 720 },
         facingMode: "user"
       }
     });
