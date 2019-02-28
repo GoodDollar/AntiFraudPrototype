@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import { EnrollmentResult, search } from "../../util/Zoom";
 import { Error } from "../Error/Error";
+import { Button } from "../Button/Button";
 
 interface ResultProps {
   name?: string;
   email?: string;
   enrollmentResult: EnrollmentResult;
+  handleReset: () => void;
 }
 
 interface ResultState {
@@ -80,6 +82,11 @@ export class Result extends Component<ResultProps, ResultState> {
             </p>
           </>
         )}
+
+        {!this.didPassLiveness ||
+          (this.state.registerResult && (
+            <Button onClick={this.props.handleReset}>Try Again</Button>
+          ))}
       </div>
     );
   }

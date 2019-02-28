@@ -39,8 +39,6 @@ export class Liveness extends Component<LivenessProps, LivenessState> {
       window.innerHeight > window.innerWidth
         ? this.width * 1.77777778
         : this.width * 0.5625;
-
-    await initialize();
   }
 
   async onCameraLoad(track: MediaStreamTrack) {
