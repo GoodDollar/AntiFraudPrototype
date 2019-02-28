@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   validates :name, presence: true
-  validates :email, presence: true, uniqueness: true, format: /@/
+  validates :email, presence: true, format: /@/
   validates :zoom_enrollment_id, presence: true, uniqueness: true
 
   after_destroy do
