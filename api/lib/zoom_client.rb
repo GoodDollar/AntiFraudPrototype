@@ -1,5 +1,6 @@
 class ZoomClient
   ZoomError = Class.new(StandardError)
+  MatchingEnrollment = Struct.new(:enrollment_id, :match_score, :user)
 
   MATCH_THRESHOLD = 50.freeze
 
@@ -32,9 +33,10 @@ class ZoomClient
     )
 
     response['results']
-      .select { |result| result['matchScore'] > MATCH_THRESHOLD }
-      .reject { |result| result['enrollmentIdentifier'] == enrollment_id }
-      .map { |result| result['enrollmentIdentifier'] }
+      .map { |r| MatchingEnrollment.new(r['enrollmentIdentifier'], r['matchScore'], nil) }
+      .reject { |e| e.enrollment_id == enrollment_id }
+      .map { |e| e.user = User.find_by_zoom_enrollment_id(e.enrollment_id); e }
+      .reject { |e| e.user.nil? }
   end
 
   def delete_enrollment(enrollment_id:)

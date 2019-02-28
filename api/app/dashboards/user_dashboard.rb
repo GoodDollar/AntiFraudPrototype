@@ -13,6 +13,7 @@ class UserDashboard < Administrate::BaseDashboard
     email: Field::String,
     zoom_enrollment_id: Field::String,
     audit_trail_image: AuditTrailImageField,
+    zoom_matching_enrollments: MatchingEnrollmentsField,
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
   }.freeze
@@ -37,6 +38,7 @@ class UserDashboard < Administrate::BaseDashboard
     :email,
     :zoom_enrollment_id,
     :audit_trail_image,
+    :zoom_matching_enrollments,
     :created_at,
     :updated_at,
   ].freeze

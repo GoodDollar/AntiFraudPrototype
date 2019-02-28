@@ -6,10 +6,14 @@ class UsersController < ApplicationController
       enrollment_id: @user.zoom_enrollment_id
     )
 
-    if @matching_enrollments.any? && User.where(zoom_enrollment_id: @matching_enrollments).any?
+    @user.zoom_matching_enrollments = @matching_enrollments
+
+    @matching_enrollments.reject! { |e| e.match_score < 50 }
+
+    if @matching_enrollments.any?
       render status: :conflict, json: {
-        errors: User.where(zoom_enrollment_id: @matching_enrollments).map do |u|
-          "The face supplied matches an existing user (#{u.name})"
+        errors: @matching_enrollments.map do |e|
+          "The face supplied matches an existing user (#{e.user.name})"
         end
       }
       return
