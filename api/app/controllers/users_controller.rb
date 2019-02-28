@@ -6,7 +6,7 @@ class UsersController < ApplicationController
       enrollment_id: @user.zoom_enrollment_id
     )
 
-    @user.zoom_matching_enrollments = @matching_enrollments
+    @user.zoom_matching_enrollments = @matching_enrollments.to_json
 
     @matching_enrollments.reject! { |e| e.match_score < 50 }
 
