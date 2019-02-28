@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "gd-anti-fraud-web",
+  "alias": "gd-anti-fraud.now.sh",
   "builds": [
     {
       "src": "package.json",
