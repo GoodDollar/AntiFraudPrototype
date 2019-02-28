@@ -6,9 +6,10 @@ class UsersController < ApplicationController
       enrollment_id: @user.zoom_enrollment_id
     )
 
-    @user.zoom_matching_enrollments = @matching_enrollments.to_json
+    @user.zoom_matching_enrollments = @matching_enrollments
 
     @matching_enrollments.reject! { |e| e.match_score < 50 }
+    @matching_enrollments.reject! { |e| e.user.nil? }
 
     if @matching_enrollments.any?
       render status: :conflict, json: {
