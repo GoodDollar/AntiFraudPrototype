@@ -37,6 +37,12 @@ class ZoomClient
       .map { |result| result['enrollmentIdentifier'] }
   end
 
+  def delete_enrollment(enrollment_id:)
+    handle_response(
+      self.class.delete("/enrollment/#{enrollment_id}")
+    )
+  end
+
   private
 
   def handle_response(response)
