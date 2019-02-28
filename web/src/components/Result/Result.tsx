@@ -83,10 +83,9 @@ export class Result extends Component<ResultProps, ResultState> {
           </>
         )}
 
-        {!this.didPassLiveness ||
-          (this.state.registerResult && (
-            <Button onClick={this.props.handleReset}>Try Again</Button>
-          ))}
+        {(!this.didPassLiveness || this.state.registerResult) && (
+          <Button onClick={this.props.handleReset}>Try Again</Button>
+        )}
       </div>
     );
   }
