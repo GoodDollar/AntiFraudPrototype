@@ -11,7 +11,7 @@ export class ApiError extends Error {}
 export interface ApiRequest<Body> {
   method: ApiMethod;
   endpoint: string;
-  body: Body & any;
+  body: Body;
 }
 
 export interface ApiResponse<Reply> {
@@ -21,9 +21,11 @@ export interface ApiResponse<Reply> {
 }
 
 export interface EnrollRequest {
+  name: string;
+  email: string;
   sessionId: string;
   facemap: Blob;
-  auditTrailImage: string;
+  auditTrailImage: Blob;
 }
 
 export interface EnrollResponse {}
@@ -43,17 +45,26 @@ export class ApiClient {
   }
 
   private async request<Body, Reply>(
-    req: ApiRequest<Body>
+    req: ApiRequest<Body | { [x: string]: string | Blob }>
   ): Promise<ApiResponse<Reply>> {
     const opts: RequestInit = {
       method: req.method
     };
 
     if (req.method !== ApiMethod.Get && req.body) {
-      opts.body = req.body;
+      const formData = new FormData();
+
+      Object.entries(req.body).forEach(pair => {
+        const key = pair[0];
+        const value = pair[1];
+
+        formData.append(key, value);
+      });
+
+      opts.body = formData;
     }
 
-    const response = await fetch(`${this.baseUrl}/${req.endpoint}`, opts);
+    const response = await fetch(`${this.baseUrl}${req.endpoint}`, opts);
 
     if (
       response.status !== 200 &&

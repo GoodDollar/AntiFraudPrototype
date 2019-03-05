@@ -8,6 +8,7 @@ export interface ZoomCaptureResult {
   status: any;
   sessionId: string;
   facemap: Blob;
+  auditTrailImage: Blob;
   faceMetrics: {
     auditTrail: string[];
   };
@@ -15,6 +16,12 @@ export interface ZoomCaptureResult {
 
 const initialize = async (): Promise<void> =>
   new Promise((resolve, reject) => {
+    if (!licenseKey) {
+      return reject(
+        new Error("No license key supplied in environment variable")
+      );
+    }
+
     ZoomSDK.initialize(licenseKey, (initializationSuccessful: boolean) => {
       if (initializationSuccessful) {
         resolve();
@@ -42,7 +49,7 @@ export const initializeAndPreload = async (): Promise<void> => {
   await preload();
 };
 
-export const capture = (
+export const capture = async (
   videoTrack: MediaStreamTrack
 ): Promise<ZoomCaptureResult> =>
   new Promise((resolve, reject) => {
@@ -73,7 +80,9 @@ export const capture = (
               );
             }
 
-            resolve(result);
+            auditTrailImageToBlob(result.faceMetrics.auditTrail[0])
+              .then(auditTrailImage => resolve({ ...result, auditTrailImage }))
+              .catch(() => resolve(result));
           },
           videoTrack
         );
@@ -82,3 +91,6 @@ export const capture = (
       }
     );
   });
+
+const auditTrailImageToBlob = async (auditTrailImage: string): Promise<Blob> =>
+  (await fetch(auditTrailImage)).blob();

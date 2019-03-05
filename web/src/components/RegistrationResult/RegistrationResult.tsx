@@ -4,13 +4,15 @@ import { ApiResponse, ApiClient, ApiError } from "../../util/ApiClient";
 import { ErrorList } from "../ErrorList/ErrorList";
 
 interface RegistrationResultProps {
+  name: string;
+  email: string;
   result: ZoomCaptureResult;
+  onApiError: (error: ApiError) => void;
 }
 
 interface RegistrationResultState {
   loading: boolean;
   apiResult?: ApiResponse<unknown>;
-  apiError?: ApiError;
 }
 
 export class RegistrationResult extends Component<
@@ -28,26 +30,21 @@ export class RegistrationResult extends Component<
       this.setState({
         loading: false,
         apiResult: await this.client.enroll({
+          email: this.props.email,
+          name: this.props.name,
           sessionId: this.props.result.sessionId,
           facemap: this.props.result.facemap,
-          auditTrailImage: this.props.result.faceMetrics.auditTrail[0]
+          auditTrailImage: this.props.result.auditTrailImage
         })
       });
     } catch (apiError) {
-      this.setState({
-        loading: false,
-        apiError
-      });
+      this.props.onApiError(apiError);
     }
   }
 
   render() {
     if (this.state.loading) {
       return <p>Loading...</p>;
-    }
-
-    if (this.state.apiError) {
-      return <ErrorList errors={[this.state.apiError.message]} />;
     }
 
     return <div>{JSON.stringify(this.state.apiResult)}</div>;

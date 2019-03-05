@@ -11,7 +11,7 @@ export const ErrorList = (props: ErrorListProps) => (
     {props.title || "An error occurred:"}
     <ul>
       {props.errors.map(e => (
-        <li>{e}</li>
+        <li key={e}>{e}</li>
       ))}
     </ul>
   </Wrapper>

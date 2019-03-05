@@ -54,23 +54,32 @@ export class App extends Component<{}, AppState> {
 
         {this.state.mode === Mode.Register && (
           <>
-            {!this.state.register.email && (
+            {(!this.state.register.email || !this.state.register.name) && (
               <RegistrationForm
                 onSubmit={this.handleRegisterSubmit.bind(this)}
               />
             )}
 
-            {this.state.register.email && !this.state.register.result && (
-              <LivenessCapture
-                onCaptureComplete={this.handleRegisterCaptureComplete.bind(
-                  this
+            {this.state.register.email && this.state.register.name && (
+              <>
+                {!this.state.register.result && (
+                  <LivenessCapture
+                    onCaptureComplete={this.handleRegisterCaptureComplete.bind(
+                      this
+                    )}
+                    onCaptureError={this.handleError.bind(this)}
+                  />
                 )}
-                onCaptureError={this.handleError.bind(this)}
-              />
-            )}
 
-            {this.state.register.result && (
-              <RegistrationResult result={this.state.register.result} />
+                {this.state.register.result && (
+                  <RegistrationResult
+                    email={this.state.register.email}
+                    name={this.state.register.name}
+                    result={this.state.register.result}
+                    onApiError={this.handleError.bind(this)}
+                  />
+                )}
+              </>
             )}
           </>
         )}
