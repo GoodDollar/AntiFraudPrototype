@@ -1,29 +1,40 @@
 import React, { Component } from "react";
-import { Liveness } from "./components/Liveness/Liveness";
 import styled from "styled-components";
-import { Form } from "./components/Form/Form";
-import { EnrollmentResult, initialize } from "./util/Zoom";
-import { Result } from "./components/Result/Result";
+import { RegistrationForm } from "./components/RegistrationForm/RegistrationForm";
+import { initializeAndPreload, ZoomCaptureResult } from "./util/Zoom";
+import { LivenessCapture } from "./components/LivenessCapture/LivenessCapture";
+import { ErrorList } from "./components/ErrorList/ErrorList";
+import { RegistrationResult } from "./components/RegistrationResult/RegistrationResult";
 
 enum Mode {
   Register,
-  Login
+  Login,
+  Error
 }
 
 interface AppState {
   mode: Mode;
-  name?: string;
-  email?: string;
-  enrollmentResult?: EnrollmentResult;
+  register: {
+    name?: string;
+    email?: string;
+    result?: ZoomCaptureResult;
+  };
+  login: {
+    email?: string;
+    result?: ZoomCaptureResult;
+  };
+  error?: Error;
 }
 
 export class App extends Component<{}, AppState> {
   state: AppState = {
-    mode: Mode.Register
+    mode: Mode.Register,
+    register: {},
+    login: {}
   };
 
   async componentDidMount() {
-    await initialize();
+    await initializeAndPreload();
   }
 
   render() {
@@ -43,21 +54,23 @@ export class App extends Component<{}, AppState> {
 
         {this.state.mode === Mode.Register && (
           <>
-            {!this.state.name && (
-              <Form onSubmit={this.handleFormSubmit.bind(this)} />
-            )}
-            {this.state.name &&
-              this.state.email &&
-              !this.state.enrollmentResult && (
-                <Liveness onEnroll={this.handleEnroll.bind(this)} />
-              )}
-            {this.state.enrollmentResult && (
-              <Result
-                name={this.state.name}
-                email={this.state.email}
-                enrollmentResult={this.state.enrollmentResult}
-                handleReset={this.handleReset.bind(this)}
+            {!this.state.register.email && (
+              <RegistrationForm
+                onSubmit={this.handleRegisterSubmit.bind(this)}
               />
+            )}
+
+            {this.state.register.email && !this.state.register.result && (
+              <LivenessCapture
+                onCaptureComplete={this.handleRegisterCaptureComplete.bind(
+                  this
+                )}
+                onCaptureError={this.handleError.bind(this)}
+              />
+            )}
+
+            {this.state.register.result && (
+              <RegistrationResult result={this.state.register.result} />
             )}
           </>
         )}
@@ -67,20 +80,45 @@ export class App extends Component<{}, AppState> {
             <p>Coming soon.</p>
           </>
         )}
+
+        {this.state.mode == Mode.Error && <ErrorList errors={this.errors()} />}
       </Wrapper>
     );
   }
 
-  handleReset() {
-    this.setState({ enrollmentResult: undefined });
+  // errors
+  private errors(): string[] {
+    if (!this.state.error) {
+      return [];
+    }
+
+    return [this.state.error.message];
   }
 
-  handleFormSubmit(name: string, email: string) {
-    this.setState({ name, email });
+  private handleError(error: Error) {
+    this.setState({
+      mode: Mode.Error,
+      error
+    });
   }
 
-  handleEnroll(enrollmentResult: EnrollmentResult) {
-    this.setState({ enrollmentResult });
+  // register
+  private handleRegisterCaptureComplete(result: ZoomCaptureResult) {
+    this.setState({
+      register: {
+        ...this.state.register,
+        result
+      }
+    });
+  }
+
+  private handleRegisterSubmit(name: string, email: string) {
+    this.setState({
+      register: {
+        name,
+        email
+      }
+    });
   }
 }
 

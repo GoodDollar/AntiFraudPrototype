@@ -1,8 +1,10 @@
+import { resolve } from "dns";
+
 declare var ZoomSDK: any;
 
 const licenseKey = process.env.REACT_APP_ZOOM_LICENSE_KEY || "";
 
-export interface ZoomResult {
+export interface ZoomCaptureResult {
   status: any;
   sessionId: string;
   facemap: Blob;
@@ -11,28 +13,38 @@ export interface ZoomResult {
   };
 }
 
-export interface EnrollmentResult {
-  meta: {
-    ok: boolean;
-    message: string;
-  };
-  data: {
-    enrollmentIdentifier: string;
-    livenessResult: string;
-    livenessScore: number;
-    glassesScore: number;
-    glassesDecision: boolean;
-  };
-  sessionId: string;
-  auditTrailImage: string;
-}
+const initialize = async (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    ZoomSDK.initialize(licenseKey, (initializationSuccessful: boolean) => {
+      if (initializationSuccessful) {
+        resolve();
+      }
 
-export const initialize = (): Promise<void> =>
-  new Promise(resolve => {
-    ZoomSDK.initialize(licenseKey, () => ZoomSDK.preload(() => resolve()));
+      reject(
+        new Error(`unable to initialize zoom sdk: ${ZoomSDK.getStatus()}`)
+      );
+    });
   });
 
-export const capture = (videoTrack: MediaStreamTrack): Promise<ZoomResult> =>
+const preload = async (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    ZoomSDK.preload((preloadResult: any) => {
+      if (preloadResult) {
+        return resolve();
+      }
+
+      reject();
+    });
+  });
+
+export const initializeAndPreload = async (): Promise<void> => {
+  await initialize();
+  await preload();
+};
+
+export const capture = (
+  videoTrack: MediaStreamTrack
+): Promise<ZoomCaptureResult> =>
   new Promise((resolve, reject) => {
     ZoomSDK.prepareInterface(
       "zoom-interface-container",
@@ -49,77 +61,24 @@ export const capture = (videoTrack: MediaStreamTrack): Promise<ZoomResult> =>
           );
         }
 
-        const zoomSession = new ZoomSDK.ZoomSession((result: ZoomResult) => {
-          if (
-            result.status !==
-              ZoomSDK.ZoomTypes.ZoomCaptureResult.SessionCompleted ||
-            !result.facemap
-          ) {
-            reject(new Error(`unsuccessful capture result: ${result.status}`));
-          }
+        const zoomSession = new ZoomSDK.ZoomSession(
+          (result: ZoomCaptureResult) => {
+            if (
+              result.status !==
+                ZoomSDK.ZoomTypes.ZoomCaptureResult.SessionCompleted ||
+              !result.facemap
+            ) {
+              return reject(
+                new Error(`unsuccessful capture result: ${result.status}`)
+              );
+            }
 
-          resolve(result);
-        }, videoTrack);
+            resolve(result);
+          },
+          videoTrack
+        );
 
         zoomSession.capture();
       }
     );
   });
-
-export const enroll = async (
-  result: ZoomResult,
-  id: string
-): Promise<EnrollmentResult> => {
-  const data = new FormData();
-  data.append("enrollmentIdentifier", id);
-  data.append("sessionId", result.sessionId);
-  data.append("facemap", result.facemap);
-  data.append(
-    "auditTrailImage",
-    await auditTrailImageToBlob(result.faceMetrics.auditTrail[0])
-  );
-
-  const response = await fetch(
-    "https://api.zoomauth.com/api/v1/biometrics/enrollment",
-    {
-      method: "POST",
-      body: data,
-      headers: {
-        "X-App-Token": licenseKey,
-        "X-User-Agent": ZoomSDK.createZoomAPIUserAgentString(result.facemap)
-      }
-    }
-  );
-
-  const responseJson = await response.json();
-
-  return {
-    ...responseJson,
-    sessionId: result.sessionId
-  };
-};
-
-export const search = async ({
-  data: { enrollmentIdentifier },
-  sessionId
-}: EnrollmentResult): Promise<any> => {
-  const data = new FormData();
-  data.append("enrollmentIdentifier", enrollmentIdentifier);
-  data.append("sessionId", sessionId);
-
-  const response = await fetch(
-    "https://api.zoomauth.com/api/v1/biometrics/search",
-    {
-      method: "POST",
-      body: data,
-      headers: {
-        "X-App-Token": licenseKey
-      }
-    }
-  );
-
-  return response.json();
-};
-
-const auditTrailImageToBlob = async (auditTrailImage: string): Promise<Blob> =>
-  (await fetch(auditTrailImage)).blob();

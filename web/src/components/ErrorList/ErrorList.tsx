@@ -1,12 +1,12 @@
 import React from "react";
 import styled from "styled-components";
 
-interface ErrorProps {
+interface ErrorListProps {
   title?: string;
   errors: string[];
 }
 
-export const Error = (props: ErrorProps) => (
+export const ErrorList = (props: ErrorListProps) => (
   <Wrapper>
     {props.title || "An error occurred:"}
     <ul>
