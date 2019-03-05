@@ -31,6 +31,7 @@ class EnrollmentDashboard < Administrate::BaseDashboard
     :uuid,
     :email,
     :name,
+    :zoom_enrollment_successful
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
