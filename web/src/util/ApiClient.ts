@@ -71,7 +71,7 @@ export class ApiClient {
       response.status !== 201 &&
       response.status !== 204
     ) {
-      throw new ApiError(`HTTP ${response.status}`);
+      throw new ApiError(`HTTP ${response.status}: ${await response.text()}`);
     }
 
     const json = await response.json();
