@@ -1,27 +1,30 @@
 class UsersController < ApplicationController
   def create
-    @user = User.new(user_params)
+    @enrollment = Enrollment.new(enrollment_params)
 
-    @matching_enrollments = zoom_client.matching_enrollments(
-      enrollment_id: @user.zoom_enrollment_id
-    )
-
-    @user.zoom_matching_enrollments = @matching_enrollments
-
-    @matching_enrollments.reject! { |e| e.match_score < 50 }
-    @matching_enrollments.reject! { |e| e.user.nil? }
-
-    if @matching_enrollments.any?
-      render status: :conflict, json: {
-        errors: @matching_enrollments.map do |e|
-          "The face supplied matches an existing user (#{e.user.name})"
-        end
-      }
+    if !@enrollment.save
+      render(
+        status: :unprocessable_entity,
+        json: { errors: @enrollment.errors.full_messages }
+      )
       return
     end
 
+    if @enrollment.suspected_duplicate?
+      render(
+        status: :conflict,
+        json: { errors: @enrollment.similar_enrollments.map { |e| e.to_s } }
+      )
+      return
+    end
+
+    @user = User.new(user_params)
+
     if !@user.save
-      render status: :unprocessable_entity, json: { errors: @user.errors.full_messages }
+      render(
+        status: :unprocessable_entity,
+        json: { errors: @user.errors.full_messages }
+      )
       return
     end
 
@@ -34,11 +37,23 @@ class UsersController < ApplicationController
 
   private
 
-  def user_params
-    params.permit(:name, :email, :zoom_enrollment_id)
+  def enrollment_params
+    params.permit(
+      :name,
+      :email,
+      :session_id,
+      :facemap,
+      :audit_trail_image
+    ).tap do |p|
+      p[:facemap] = p[:facemap].read
+      p[:audit_trail_image] = p[:audit_trail_image].read
+    end
   end
 
-  def zoom_client
-    ZoomClient.new(session_id: params[:zoom_session_id])
+  def user_params
+    params.permit(
+      :name,
+      :email
+    )
   end
 end

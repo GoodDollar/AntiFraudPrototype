@@ -1,64 +1,56 @@
 class ZoomClient
   ZoomError = Class.new(StandardError)
-  MatchingEnrollment = Struct.new(:enrollment_id, :match_score, :user)
 
-  MATCH_THRESHOLD = 50.freeze
-
-  include HTTParty
-  base_uri('https://api.zoomauth.com/api/v1/biometrics')
-  headers({
-    'X-App-Token' => 'd4QcD1WU4s5srMoJeDe2YDIIvy2AaMI0',
-  })
-
-  attr_reader :session_id
-
-  def initialize(session_id: nil)
-    @session_id = session_id
-  end
-
-  def audit_trail_image(enrollment_id:)
+  def create_enrollment(enrollment:)
     handle_response(
-      self.class.get("/enrollment/#{enrollment_id}?return=auditTrailImage")
-    )['auditTrailImage']
-  end
-
-  def matching_enrollments(enrollment_id:)
-    response = handle_response(
-      self.class.post(
-        '/search',
+      faraday.post(
+        'enrollment',
         {
-          body: inject_session_id({ enrollmentIdentifier: enrollment_id })
+          body: {
+            enrollmentIdentifier: enrollment.uuid,
+            facemap: enrollment.facemap,
+            sessionId: enrollment.session_id,
+            auditTrailImage: enrollment.audit_trail_image,
+          }
         }
       )
-    )
-
-    response['results']
-      .map { |r| MatchingEnrollment.new(r['enrollmentIdentifier'], r['matchScore'], nil) }
-      .reject { |e| e.enrollment_id == enrollment_id }
-      .map { |e| e.user = User.find_by_zoom_enrollment_id(e.enrollment_id); e }
+    ).except(:facemap, :auditTrailImage)
   end
 
   def delete_enrollment(enrollment_id:)
     handle_response(
-      self.class.delete("/enrollment/#{enrollment_id}")
+      faraday.delete("enrollment/#{enrollment_id}")
     )
+  end
+
+  def search(enrollment:)
+    handle_response(
+      faraday.post(
+        'search',
+        {
+          body: {
+            sessionId: enrollment.session_id,
+            enrollmentIdentifier: enrollment.uuid
+          }
+        }
+      )
+    ).except(:auditTrailImage)
   end
 
   private
 
   def handle_response(response)
-    response = response.parsed_response
-
-    if !response['meta']['ok']
-      raise ZoomError, "#{response['meta']['code']}: #{response['meta']['message']}"
-    end
-
-    response['data']
+    response.body[:body]
   end
 
-  def inject_session_id(body)
-    {
-      sessionId: session_id
-    }.merge(body)
+  def faraday
+    @faraday ||= Faraday.new(
+      url: 'https://api.zoomauth.com/api/v1/biometrics',
+      headers: {
+        'X-App-Token' => 'd4QcD1WU4s5srMoJeDe2YDIIvy2AaMI0'
+      },
+    ) do |fday|
+      fday.request(:multipart)
+    end
   end
 end
