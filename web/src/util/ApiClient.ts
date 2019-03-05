@@ -58,7 +58,14 @@ export class ApiClient {
         const key = pair[0];
         const value = pair[1];
 
-        formData.append(key, value);
+        formData.append(
+          // camelCase to snake_case
+          key
+            .split(/(?=[A-Z])/)
+            .join("_")
+            .toLowerCase(),
+          value
+        );
       });
 
       opts.body = formData;
