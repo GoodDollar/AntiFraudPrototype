@@ -6,15 +6,13 @@ class ZoomClient
       faraday.post(
         'enrollment',
         {
-          body: {
-            enrollmentIdentifier: enrollment.uuid,
-            facemap: enrollment.facemap,
-            sessionId: enrollment.session_id,
-            auditTrailImage: enrollment.audit_trail_image,
-          }
+          sessionId: enrollment.session_id,
+          enrollmentIdentifier: enrollment.uuid,
+          facemap: Faraday::UploadIO.new(StringIO.new(enrollment.facemap), 'application/zip'),
+          auditTrailImage: Faraday::UploadIO.new(StringIO.new(enrollment.audit_trail_image), 'image/jpeg'),
         }
       )
-    ).except(:facemap, :auditTrailImage)
+    )
   end
 
   def delete_enrollment(enrollment_id:)
@@ -28,19 +26,43 @@ class ZoomClient
       faraday.post(
         'search',
         {
-          body: {
-            sessionId: enrollment.session_id,
-            enrollmentIdentifier: enrollment.uuid
-          }
+          sessionId: enrollment.session_id,
+          enrollmentIdentifier: enrollment.uuid
         }
       )
-    ).except(:auditTrailImage)
+    ).tap do |response|
+      if response.try(:[], 'data').try(:[], 'results')
+        response['data']['results'].map! do |result|
+          result.except('auditTrailImage')
+        end
+      end
+    end
+  end
+
+  def authenticate(login_attempt:)
+    handle_response(
+      faraday.post(
+        'authenticate',
+        {
+          sessionId: login_attempt.session_id,
+          performContinuousLearning: true,
+          source: {
+            enrollmentIdentifier: login_attempt.zoom_source_id
+          },
+          targets: [
+            {
+              facemap: Faraday::UploadIO.new(StringIO.new(login_attempt.facemap), 'application/zip')
+            }
+          ]
+        }
+      )
+    )
   end
 
   private
 
   def handle_response(response)
-    response.body[:body]
+    response.body
   end
 
   def faraday
@@ -50,7 +72,10 @@ class ZoomClient
         'X-App-Token' => 'd4QcD1WU4s5srMoJeDe2YDIIvy2AaMI0'
       },
     ) do |fday|
-      fday.request(:multipart)
+      fday.request :multipart
+      fday.request :url_encoded
+      fday.response :json
+      fday.adapter Faraday.default_adapter
     end
   end
 end

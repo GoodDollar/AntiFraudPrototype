@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :users
     resources :enrollments
+    resources :login_attempts
 
     root to: "users#index"
   end

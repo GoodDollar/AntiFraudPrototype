@@ -5,6 +5,8 @@ import { initializeAndPreload, ZoomCaptureResult } from "./util/Zoom";
 import { LivenessCapture } from "./components/LivenessCapture/LivenessCapture";
 import { ErrorList } from "./components/ErrorList/ErrorList";
 import { RegistrationResult } from "./components/RegistrationResult/RegistrationResult";
+import { LoginForm } from "./components/LoginForm/LoginForm";
+import { LoginResult } from "./components/LoginResult/LoginResult";
 
 enum Mode {
   Register,
@@ -41,14 +43,14 @@ export class App extends Component<{}, AppState> {
     return (
       <Wrapper>
         <Header>
-          GoodDollar Anti-Fraud Prototype
+          GoodDollar
           <Nav>
             <NavLink onClick={() => this.setState({ mode: Mode.Register })}>
               Register
             </NavLink>
-            {/* <NavLink onClick={() => this.setState({ mode: Mode.Login })}>
+            <NavLink onClick={() => this.setState({ mode: Mode.Login })}>
               Log In
-            </NavLink> */}
+            </NavLink>
           </Nav>
         </Header>
 
@@ -86,7 +88,24 @@ export class App extends Component<{}, AppState> {
 
         {this.state.mode === Mode.Login && (
           <>
-            <p>Coming soon.</p>
+            {!this.state.login.email && (
+              <LoginForm onSubmit={this.handleLoginSubmit.bind(this)} />
+            )}
+
+            {this.state.login.email && !this.state.login.result && (
+              <LivenessCapture
+                onCaptureComplete={this.handleLoginCaptureComplete.bind(this)}
+                onCaptureError={this.handleError.bind(this)}
+              />
+            )}
+
+            {this.state.login.email && this.state.login.result && (
+              <LoginResult
+                email={this.state.login.email}
+                result={this.state.login.result}
+                onApiError={this.handleError.bind(this)}
+              />
+            )}
           </>
         )}
 
@@ -129,6 +148,24 @@ export class App extends Component<{}, AppState> {
       }
     });
   }
+
+  // login
+  private handleLoginCaptureComplete(result: ZoomCaptureResult) {
+    this.setState({
+      login: {
+        ...this.state.login,
+        result
+      }
+    });
+  }
+
+  private handleLoginSubmit(email: string) {
+    this.setState({
+      login: {
+        email
+      }
+    });
+  }
 }
 
 const Wrapper = styled.div`
@@ -149,6 +186,10 @@ const Nav = styled.nav`
 
 const NavLink = styled.a`
   font-weight: normal;
-  margin-left: 1rem;
+  font-size: 0.8rem;
   cursor: pointer;
+
+  &:last-child {
+    margin-left: 1rem;
+  }
 `;

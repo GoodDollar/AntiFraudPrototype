@@ -56,7 +56,9 @@ export class Camera extends Component<CameraProps, CameraState> {
       this.currentConstraintIndex++;
 
       if (this.currentConstraintIndex >= this.acceptableConstraints.length) {
-        throw new Error("Possible constraints exhausted");
+        throw new Error(
+          "Unable to get a video stream. Please ensure you give permission to this website to access your camera, and have a 720p+ camera plugged in."
+        );
       }
 
       return this.getStream();

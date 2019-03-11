@@ -66,8 +66,10 @@ GEM
       momentjs-rails (>= 2.8.1)
     erubi (1.8.0)
     execjs (2.7.0)
-    faraday (0.13.1)
+    faraday (0.15.4)
       multipart-post (>= 1.2, < 3)
+    faraday_middleware (0.13.1)
+      faraday (>= 0.7.4, < 1.0)
     ffi (1.10.0)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
@@ -192,6 +194,7 @@ DEPENDENCIES
   administrate
   bootsnap (>= 1.1.0)
   faraday
+  faraday_middleware
   listen (>= 3.0.5, < 3.2)
   pg (>= 0.18, < 2.0)
   pry-rails

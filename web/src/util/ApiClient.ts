@@ -30,6 +30,15 @@ export interface EnrollRequest {
 
 export interface EnrollResponse {}
 
+export interface LoginRequest {
+  email: string;
+  sessionId: string;
+  facemap: Blob;
+  auditTrailImage: Blob;
+}
+
+export interface LoginResponse {}
+
 export class ApiClient {
   private readonly baseUrl =
     process.env.REACT_APP_API_URL || "http://localhost:3001";
@@ -38,6 +47,16 @@ export class ApiClient {
     const request: ApiRequest<EnrollRequest> = {
       method: ApiMethod.Post,
       endpoint: "/users",
+      body: e
+    };
+
+    return this.request(request);
+  }
+
+  async login(e: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+    const request: ApiRequest<LoginRequest> = {
+      method: ApiMethod.Post,
+      endpoint: "/users/login",
       body: e
     };
 

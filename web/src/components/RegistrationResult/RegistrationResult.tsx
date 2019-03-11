@@ -1,7 +1,11 @@
 import React, { Component } from "react";
 import { ZoomCaptureResult } from "../../util/Zoom";
-import { ApiResponse, ApiClient, ApiError } from "../../util/ApiClient";
-import { ErrorList } from "../ErrorList/ErrorList";
+import {
+  ApiResponse,
+  ApiClient,
+  ApiError,
+  EnrollResponse
+} from "../../util/ApiClient";
 
 interface RegistrationResultProps {
   name: string;
@@ -12,7 +16,7 @@ interface RegistrationResultProps {
 
 interface RegistrationResultState {
   loading: boolean;
-  apiResult?: ApiResponse<unknown>;
+  apiResult?: ApiResponse<EnrollResponse>;
 }
 
 export class RegistrationResult extends Component<

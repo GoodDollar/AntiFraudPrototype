@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_03_05_073035) do
+ActiveRecord::Schema.define(version: 2019_03_11_190514) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,6 +27,20 @@ ActiveRecord::Schema.define(version: 2019_03_05_073035) do
     t.boolean "zoom_enrollment_successful"
     t.json "zoom_enrollment_response"
     t.string "session_id"
+    t.json "zoom_similar_enrollments"
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_enrollments_on_user_id"
+  end
+
+  create_table "login_attempts", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "session_id"
+    t.binary "facemap"
+    t.binary "audit_trail_image"
+    t.json "zoom_authenticate_response"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_login_attempts_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -36,4 +50,6 @@ ActiveRecord::Schema.define(version: 2019_03_05_073035) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "enrollments", "users"
+  add_foreign_key "login_attempts", "users"
 end
