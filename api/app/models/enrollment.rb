@@ -8,19 +8,17 @@ class Enrollment < ApplicationRecord
   after_create :zoom_hydrate!
   after_destroy :zoom_destroy!
 
-  def similar_enrollments
-    zoom_client.search(enrollment: self)
-  end
-
   def suspected_duplicate?
-    similar_enrollments.any?
+    zoom_similar_enrollments.any?
   end
 
   private
 
   def zoom_hydrate!
     self.zoom_enrollment_response = zoom_client.create_enrollment(enrollment: self)
+    self.zoom_similar_enrollments = zoom_client.search(enrollment: self)
     self.zoom_enrollment_successful = true
+
     self.save!
   end
 

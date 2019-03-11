@@ -18,6 +18,7 @@ class EnrollmentDashboard < Administrate::BaseDashboard
     uuid: Field::String.with_options(searchable: false),
     zoom_enrollment_successful: Field::Boolean,
     zoom_enrollment_response: Field::String.with_options(searchable: false),
+    zoom_similar_enrollments: Field::String.with_options(searchable: false),
     session_id: Field::String,
   }.freeze
 
@@ -47,6 +48,7 @@ class EnrollmentDashboard < Administrate::BaseDashboard
     :session_id,
     :zoom_enrollment_successful,
     :zoom_enrollment_response,
+    :zoom_similar_enrollments
   ].freeze
 
   # FORM_ATTRIBUTES

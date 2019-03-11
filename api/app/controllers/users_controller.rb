@@ -13,7 +13,7 @@ class UsersController < ApplicationController
     if @enrollment.suspected_duplicate?
       render(
         status: :conflict,
-        json: { errors: @enrollment.similar_enrollments.map { |e| e.to_s } }
+        json: { errors: @enrollment.zoom_similar_enrollments.map(&:to_s) }
       )
       return
     end
