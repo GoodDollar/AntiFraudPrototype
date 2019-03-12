@@ -28,7 +28,10 @@ class UsersController < ApplicationController
         status: :conflict,
         json: {
           errors: @enrollment.zoom_filtered_similar_enrollments.map do |similar|
+            enrollment = Enrollment.where(uuid: e['enrollmentIdentifier']).take
+            next unless enrollment && enrollment.user.present?
 
+            "Too similar to #{enrollment.user.name}"
           end
         }
       )
