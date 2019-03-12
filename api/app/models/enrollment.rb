@@ -1,6 +1,4 @@
 class Enrollment < ApplicationRecord
-  THRESHOLD = 50.0
-
   belongs_to :user, optional: true
 
   validates :email, presence: true
@@ -15,8 +13,10 @@ class Enrollment < ApplicationRecord
   def zoom_filtered_similar_enrollments
     return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
-    zoom_similar_enrollments['data']['results'].reject do |e|
-      e['zoomSearchMatchLevel'].to_i < THRESHOLD
+    zoom_similar_enrollments['data']['results'].map do |e|
+      e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
+    end.reject do |e|
+      e['zoomSearchMatchLevel'].unreliable?
     end.select do |e|
       Enrollment.where(uuid: e['enrollmentIdentifier']).any?
     end
