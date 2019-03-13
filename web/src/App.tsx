@@ -126,7 +126,9 @@ export class App extends Component<{}, AppState> {
   private handleError(error: Error) {
     this.setState({
       mode: Mode.Error,
-      error
+      error,
+      register: {},
+      login: {}
     });
   }
 
