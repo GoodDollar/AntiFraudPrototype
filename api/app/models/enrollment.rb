@@ -13,12 +13,14 @@ class Enrollment < ApplicationRecord
   def zoom_filtered_similar_enrollments
     return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
-    zoom_similar_enrollments['data']['results'].map do |e|
-      e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
-    end.reject do |e|
-      e['zoomSearchMatchLevel'].unreliable?
-    end.select do |e|
-      Enrollment.where(uuid: e['enrollmentIdentifier']).any?
+    zoom_similar_enrollments['data']['results'].map do |enrollment|
+      enrollment.tap do |e|
+        e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
+      end
+    end.reject do |enrollment|
+      enrollment['zoomSearchMatchLevel'].unreliable?
+    end.select do |enrollment|
+      Enrollment.where(uuid: enrollment['enrollmentIdentifier']).any?
     end
   end
 
