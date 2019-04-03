@@ -11,7 +11,7 @@ class Enrollment < ApplicationRecord
   after_destroy :zoom_destroy!
 
   def zoom_filtered_similar_enrollments
-    return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
+    return [] unless   .try(:[], 'data').try(:[], 'results')
 
     zoom_similar_enrollments['data']['results'].map do |enrollment|
       enrollment.tap do |e|
@@ -21,6 +21,18 @@ class Enrollment < ApplicationRecord
       enrollment['zoomSearchMatchLevel'].unreliable?
     end.select do |enrollment|
       Enrollment.where(uuid: enrollment['enrollmentIdentifier']).any?
+    end
+  end
+
+  def zoom_populate_similar_enrollments
+    return [] unless   .try(:[], 'data').try(:[], 'results')
+
+    zoom_similar_enrollments['data']['results'].map do |enrollment|
+      enrollment.tap do |e|
+        e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
+      end
+    end.select do |enrollment|
+      User.where(id: Enrollment.where(uuid: enrollment['user_id']).any?).any?
     end
   end
 
