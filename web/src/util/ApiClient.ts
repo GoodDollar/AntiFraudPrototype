@@ -29,6 +29,7 @@ export interface EnrollRequest {
 }
 
 export interface EnrollResponse {}
+export interface EnrollmentsResponse {}
 
 export interface LoginRequest {
   email: string;
@@ -43,7 +44,7 @@ export class ApiClient {
   private readonly baseUrl =
     process.env.REACT_APP_API_URL || "http://localhost:3001";
 
-  async enroll(e: EnrollRequest): Promise<ApiResponse<EnrollResponse>> {
+    async enroll(e: EnrollRequest): Promise<ApiResponse<EnrollResponse>> {
     const request: ApiRequest<EnrollRequest> = {
       method: ApiMethod.Post,
       endpoint: "/users",

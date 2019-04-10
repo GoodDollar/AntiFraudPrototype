@@ -11,7 +11,7 @@ class Enrollment < ApplicationRecord
   after_destroy :zoom_destroy!
 
   def zoom_filtered_similar_enrollments
-    return [] unless   .try(:[], 'data').try(:[], 'results')
+    return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
     zoom_similar_enrollments['data']['results'].map do |enrollment|
       enrollment.tap do |e|
@@ -24,17 +24,30 @@ class Enrollment < ApplicationRecord
     end
   end
 
-  def zoom_populate_similar_enrollments
-    return [] unless   .try(:[], 'data').try(:[], 'results')
+  def zoom_users_from_similar_enrollments
+    return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
     zoom_similar_enrollments['data']['results'].map do |enrollment|
       enrollment.tap do |e|
         e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
       end
+    puts 'calculating zoom_users_from_similar_enrollments'
+    puts enrollment 
     end.select do |enrollment|
-      User.where(id: Enrollment.where(uuid: enrollment['user_id']).any?).any?
-    end
+
+      #self.zoom_users_from_similar_enrollments = 
+       Enrollment.where(uuid: enrollment['enrollmentIdentifier']).map {|en| 
+          en.try(:'.','email')
+            #json: {
+            # zoom_id: enrollment['enrollmentIdentifier'],
+            # system_user: e.user,
+            # matching_score:enrollment['zoomSearchMatchLevel']
+            #}   
+       }
+       
+      end
   end
+    
 
   def suspected_duplicate?
     return true if !zoom_similar_enrollments['meta']['ok']

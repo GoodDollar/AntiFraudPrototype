@@ -69,7 +69,7 @@ class ZoomClient
     @faraday ||= Faraday.new(
       url: 'https://api.zoomauth.com/api/v1/biometrics',
       headers: {
-        'X-App-Token' => 'd4QcD1WU4s5srMoJeDe2YDIIvy2AaMI0'
+        'X-App-Token' => 'dmm5F80v71kkNcm3inG3DcAUadIlE5K4'
       },
     ) do |fday|
       fday.request :multipart
