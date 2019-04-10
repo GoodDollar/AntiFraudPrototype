@@ -16,6 +16,7 @@ enum Mode {
 
 interface AppState {
   mode: Mode;
+  prettifyResults: (string) => void;
   register: {
     name?: string;
     email?: string;
@@ -110,7 +111,7 @@ export class App extends Component<{}, AppState> {
           </>
         )}
 
-        {this.state.mode == Mode.Error && <ErrorList errors={this.errors()} />}
+        {this.state.mode == Mode.Error && <ErrorList errors={this.errors()} prettifyResults={this.prettifyResults} />}
       </Wrapper>
     );
   }
@@ -124,6 +125,15 @@ export class App extends Component<{}, AppState> {
     return [this.state.error.message];
   }
 
+  // prettifyResults
+  private prettifyResults(): string[] {
+    if (!this.state.prettifyResults) {
+      return true;
+    }
+
+    return [this.state.prettifyResults];
+  }
+
   private handleError(error: Error) {
     this.setState({
       mode: Mode.Error,
@@ -134,7 +144,7 @@ export class App extends Component<{}, AppState> {
   }
 
   // register
-  private handleRegisterCaptureComplete(result: ZoomCaptureResult) {
+  private   handleRegisterCaptureComplete(result: ZoomCaptureResult) {
     this.setState({
       register: {
         ...this.state.register,

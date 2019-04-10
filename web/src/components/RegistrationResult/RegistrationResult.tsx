@@ -42,15 +42,24 @@ export class RegistrationResult extends Component<
         })
       });
     } catch (apiError) {
-      this.props.onApiError(apiError);
+      this.props.onApiError(apiError,this.prettifyResults);
     }
   }
 
+  prettifyResults(results){
+    return( 
+      <div>
+            {results["users_from_similar_enrollments"].map((r:any,i:number)=> <pre key={i}>{r}</pre>)}
+      </div>)
+    
+  }
   render() {
     if (this.state.loading) {
       return <p>Loading...</p>;
     }
 
-    return <div>{JSON.stringify(this.state.apiResult)}</div>;
+    let similar_results:any = this.state.apiResult? this.state.apiResult.body? this.state.apiResult.body:{}:{}
+
+    return (this.prettifyResults(similar_results));
   }
 }

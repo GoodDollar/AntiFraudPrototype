@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
   def create
+    puts 'creating user'
     @enrollment = Enrollment.new(enrollment_params)
 
     if !@enrollment.save
@@ -53,7 +54,12 @@ class UsersController < ApplicationController
     @enrollment.user = @user
     @enrollment.save!
 
-    render json: @user
+    render(
+      status: :ok,
+      json: {
+              user: @user,
+              users_from_similar_enrollments: @enrollment.zoom_users_from_similar_enrollments,
+      })
   end
 
   def login

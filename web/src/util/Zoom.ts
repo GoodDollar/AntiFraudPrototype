@@ -70,6 +70,7 @@ export const capture = async (
 
         const zoomSession = new ZoomSDK.ZoomSession(
           (result: ZoomCaptureResult) => {
+
             if (
               result.status !==
                 ZoomSDK.ZoomTypes.ZoomCaptureResult.SessionCompleted ||

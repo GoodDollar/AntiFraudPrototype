@@ -4,6 +4,7 @@ import styled from "styled-components";
 interface ErrorListProps {
   title?: string;
   errors: string[];
+  prettifyResults: (string) => void
 }
 
 export const ErrorList = (props: ErrorListProps) => (
@@ -13,7 +14,9 @@ export const ErrorList = (props: ErrorListProps) => (
       {props.errors.map(e => (
         <li key={e}>{e}</li>
       ))}
+
     </ul>
+    this.props.prettifyResults(props.errors)
   </Wrapper>
 );
 

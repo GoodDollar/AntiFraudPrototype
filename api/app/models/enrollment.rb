@@ -24,29 +24,34 @@ class Enrollment < ApplicationRecord
     end
   end
 
+  
   def zoom_users_from_similar_enrollments
     return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
-
+    @@similar_enrollments = Array.new
     zoom_similar_enrollments['data']['results'].map do |enrollment|
       enrollment.tap do |e|
         e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
       end
-    puts 'calculating zoom_users_from_similar_enrollments'
-    puts enrollment 
     end.select do |enrollment|
+      unless Enrollment.where(uuid: enrollment['enrollmentIdentifier']).empty? 
+          # puts enrollment['enrollmentIdentifier']
+          @@en = Enrollment.where(uuid: enrollment['enrollmentIdentifier']).first
+          
+          @@enjson = ({
+               name: @@en['name'],
+               mail: @@en['email'],
+               zoom_id: @@en['uuid'],
+               matching_score:enrollment['zoomSearchMatchLevel']
 
-      #self.zoom_users_from_similar_enrollments = 
-       Enrollment.where(uuid: enrollment['enrollmentIdentifier']).map {|en| 
-          en.try(:'.','email')
-            #json: {
-            # zoom_id: enrollment['enrollmentIdentifier'],
-            # system_user: e.user,
-            # matching_score:enrollment['zoomSearchMatchLevel']
-            #}   
-       }
-       
+          }).to_json
+          @@similar_enrollments.push(@@enjson)
       end
+    end
+
+    return @@similar_enrollments
   end
+
+ 
     
 
   def suspected_duplicate?

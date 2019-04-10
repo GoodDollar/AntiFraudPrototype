@@ -28,8 +28,9 @@ export interface EnrollRequest {
   auditTrailImage: Blob;
 }
 
-export interface EnrollResponse {}
-export interface EnrollmentsResponse {}
+export interface EnrollResponse {
+}
+
 
 export interface LoginRequest {
   email: string;
@@ -50,8 +51,9 @@ export class ApiClient {
       endpoint: "/users",
       body: e
     };
-
-    return this.request(request);
+    let result = this.request(request);
+    console.log({result})
+    return result
   }
 
   async login(e: LoginRequest): Promise<ApiResponse<LoginResponse>> {
