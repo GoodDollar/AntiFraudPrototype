@@ -3,14 +3,12 @@ import styled from "styled-components";
 import { RegistrationForm } from "./components/RegistrationForm/RegistrationForm";
 import { initializeAndPreload, ZoomCaptureResult } from "./util/Zoom";
 import { LivenessCapture } from "./components/LivenessCapture/LivenessCapture";
-import { ZoomAdmin } from "./components/ZoomAdmin/ZoomAdmin";
 import { ErrorList } from "./components/ErrorList/ErrorList";
 import { RegistrationResult } from "./components/RegistrationResult/RegistrationResult";
 import { LoginForm } from "./components/LoginForm/LoginForm";
 import { LoginResult } from "./components/LoginResult/LoginResult";
 
 enum Mode {
-  ZoomAdmin,
   Register,
   Login,
   Error
@@ -53,10 +51,7 @@ export class App extends Component<{}, AppState> {
             <NavLink onClick={() => this.setState({ mode: Mode.Login })}>
               Log In
             </NavLink>
-            <NavLink onClick={() => this.setState({ mode: Mode.ZoomAdmin })}>
-              Zoom Zdmin
-            </NavLink>
-            
+           
           </Nav>
         </Header>
 
@@ -114,11 +109,6 @@ export class App extends Component<{}, AppState> {
             )}
           </>
         )}
-
-        {this.state.mode === Mode.ZoomAdmin && (
-              <ZoomAdmin />
-        )}
-
 
         {this.state.mode == Mode.Error && <ErrorList errors={this.errors()} />}
       </Wrapper>
