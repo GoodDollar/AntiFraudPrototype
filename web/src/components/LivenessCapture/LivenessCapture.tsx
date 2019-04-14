@@ -2,11 +2,12 @@ import React, { Component, createRef } from "react";
 import { Camera } from "../Camera/Camera";
 import { capture, ZoomCaptureResult } from "../../util/Zoom";
 import { Button } from "../Button/Button";
+import { ApiResponse, Reply, ApiError } from "../../util/ApiClient";
 import "./LivenessCapture.css";
 
 interface LivenessCaptureProps {
   onCaptureComplete: (captureResult: ZoomCaptureResult) => void;
-  onCaptureError: (captureError: Error) => void;
+  onCaptureError: (captureError: ApiError) => void;
 }
 
 interface LivenessCaptureState {

@@ -1,24 +1,36 @@
-import React from "react";
+import React, { Component } from "react";
 import styled from "styled-components";
+import { ApiResponse, Reply, ApiError } from "../../util/ApiClient";
 
 interface ErrorListProps {
   title?: string;
-  errors: string[];
-  prettifyResults: (string) => void
+  apiResult: ApiResponse<Reply> | undefined;
+  printSimilarUsersResults: (apiResult:ApiResponse<Reply> | undefined) => JSX.Element
 }
 
-export const ErrorList = (props: ErrorListProps) => (
-  <Wrapper>
-    {props.title || "An error occurred:"}
-    <ul>
-      {props.errors.map(e => (
-        <li key={e}>{e}</li>
-      ))}
+export class ErrorList extends Component<ErrorListProps> {
+  
+  printErrors(apiResult:any){
+    if (apiResult && apiResult.body){
+      let errors = apiResult.body.errors
+      return errors.map((e:Error) => <li key={e.message}>{e.message}</li>)
+    }
+    return <span />
+  }
 
-    </ul>
-    this.props.prettifyResults(props.errors)
-  </Wrapper>
-);
+  render(){
+      return(
+        <Wrapper>
+          {this.props.printSimilarUsersResults(this.props.apiResult)}
+          
+          <ul>
+            {this.printErrors(this.props.apiResult)}    
+          </ul>
+          
+        </Wrapper>
+    )
+  }
+}
 
 const Wrapper = styled.div`
   background-color: #cc0000;

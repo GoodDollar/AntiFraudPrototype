@@ -3,6 +3,7 @@ class UsersController < ApplicationController
     puts 'creating user'
     @enrollment = Enrollment.new(enrollment_params)
 
+    puts 'checking if can save enrollment'
     if !@enrollment.save
       render(
         status: :unprocessable_entity,
@@ -11,6 +12,7 @@ class UsersController < ApplicationController
       return
     end
 
+    puts 'checking if enrollment was successfull'
     if !@enrollment.zoom_enrollment_successful?
       render(
         status: :unprocessable_entity,
@@ -22,25 +24,32 @@ class UsersController < ApplicationController
         }
       )
       return
-    end
+    end 
 
+    puts 'checking for suspected duplicates'
+    #puts "filtered similar enrollments #{@enrollment.zoom_filtered_similar_enrollments}"
     if @enrollment.suspected_duplicate?
       render(
         status: :conflict,
         json: {
-          similar_enrollments:@enrollment.zoom_similar_enrollments,
+          similar_enrollments: @enrollment.zoom_similar_enrollments,
           users_from_similar_enrollments: @enrollment.zoom_users_from_similar_enrollments,
           errors: @enrollment.zoom_filtered_similar_enrollments.map do |similar|
-            enrollment = Enrollment.where(uuid: e['enrollmentIdentifier']).take # access Enrollment table
+            puts "filtered similar enrollment #{similar}"
+            enrollment = Enrollment.where(uuid: similar['enrollmentIdentifier']).take # access Enrollment table
+            puts "enrollment.user #{enrollment.user}" unless !enrollment || !enrollment.user
             next unless enrollment && enrollment.user.present?
+              "Too similar to #{enrollment.user.name}"
+            
 
-            "Too similar to #{enrollment.user.name}"
           end
         }
       )
+      puts "returning"
       return
     end
 
+    puts "creating new user #{user_params}"
     @user = User.new(user_params)
 
     if !@user.save
@@ -54,6 +63,7 @@ class UsersController < ApplicationController
     @enrollment.user = @user
     @enrollment.save!
 
+    puts "user created #{@user.email}"
     render(
       status: :ok,
       json: {
@@ -67,7 +77,7 @@ class UsersController < ApplicationController
 
     if !@user
       render(
-        status: :not_found,
+        head: :not_found,
         json: { errors: 'No user found with that email address' }
       )
       return
@@ -77,7 +87,7 @@ class UsersController < ApplicationController
 
     if !@login_attempt.save
       render(
-        status: :unprocessable_entity,
+        head: :unprocessable_entity,
         json: { errors: @login_attempt.errors.full_messages }
       )
       return
@@ -85,7 +95,7 @@ class UsersController < ApplicationController
 
     if !@login_attempt.successful?
       render(
-        status: :unauthorized,
+        head: :unauthorized,
         json: { errors: 'Supplied face does not match that user' }
       )
       return
