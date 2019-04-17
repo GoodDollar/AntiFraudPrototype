@@ -10,20 +10,17 @@ class Enrollment < ApplicationRecord
   after_create :zoom_hydrate!
   after_destroy :zoom_destroy!
 
-  def zoom_filtered_similar_enrollments #find enrollments in our db with the same enrollment uuid.
-    if !(zoom_similar_enrollments.try(:[], 'data').try(:[], 'results'))
-      return []
-    end
+  def zoom_filtered_similar_enrollments  #find enrollments in our db with the same enrollment uuid. 
+    return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
     puts '1: accessed results'
     zoom_similar_enrollments['data']['results'].reject do |enrollment|
-        puts "2: reject? #{enrollment['zoomSearchMatchLevel'].unreliable?}"
-        enrollment['zoomSearchMatchLevel'].unreliable?
+        match_level = ZoomSearchMatchLevel.new(enrollment['zoomSearchMatchLevel'])
+        match_level.unreliable?
      end.select do |enrollment|
         puts '3'
         Enrollment.where(uuid: enrollment['enrollmentIdentifier']).any?
       end
-
   end
 
   
@@ -55,6 +52,7 @@ class Enrollment < ApplicationRecord
 
   def suspected_duplicate?
     return true if !zoom_similar_enrollments['meta']['ok']
+
     puts "suspected_duplicate? #{zoom_filtered_similar_enrollments.any?}"
     puts "zoom_filtered_similar_enrollments from suspected duplicates #{zoom_filtered_similar_enrollments}"
     zoom_filtered_similar_enrollments.any?
@@ -65,21 +63,14 @@ class Enrollment < ApplicationRecord
   def zoom_hydrate!
     reload
 
+    puts 'hydrating enrollment object..'
+
     self.zoom_enrollment_response = zoom_client.create_enrollment(enrollment: self)
     self.zoom_similar_enrollments = zoom_client.search(enrollment: self)
-
-    unless self.zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
-      self.zoom_similar_enrollments['data']['results'].map do |enrollment| 
-        enrollment.tap do |e|
-          e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
-        end
-      end 
-    end
-
-
     self.zoom_enrollment_successful = zoom_enrollment_response.try(:[], 'meta').try(:[], 'ok') && zoom_similar_enrollments.try(:[], 'meta').try(:[], 'ok')
 
     self.save!
+
   end
 
   def zoom_destroy!

@@ -112,6 +112,7 @@ export class ApiClient {
     }
 
     const response = await fetch(`${this.baseUrl}${req.endpoint}`, opts);
+    const json = await response.json();
 
     if (
       response.status !== 200 &&
@@ -119,11 +120,9 @@ export class ApiClient {
       response.status !== 204
     ) {
       //throw new ApiError(`HTTP ${response.status}: ${await response.text()}`);
-      //let message:string = await response.text()
-      let message = `HTTP ${response.status}: ${await response.text()}`
-      let error = new Error(message)
+      //let message = `HTTP ${response.status}: ${await response.text()}`
+      //let error = new Error(message)
       // throw new ApiError(response.status,response.headers,response.body?response.body:{},error);
-      const json = await response.json();
       const apiError: ApiResponse<Reply> = {
         status: response.status,
         headers: response.headers,
@@ -133,7 +132,6 @@ export class ApiClient {
       throw apiError
     }
 
-    const json = await response.json();
 
     const output: ApiResponse<Reply> = {
       status: response.status,

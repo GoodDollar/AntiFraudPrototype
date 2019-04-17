@@ -12,7 +12,7 @@ class UsersController < ApplicationController
       return
     end
 
-    puts 'checking if enrollment was successfull'
+    puts 'enrollment saved. checking if enrollment was successfull'
     if !@enrollment.zoom_enrollment_successful?
       render(
         status: :unprocessable_entity,
@@ -27,7 +27,6 @@ class UsersController < ApplicationController
     end 
 
     puts 'checking for suspected duplicates'
-    #puts "filtered similar enrollments #{@enrollment.zoom_filtered_similar_enrollments}"
     if @enrollment.suspected_duplicate?
       render(
         status: :conflict,
@@ -37,9 +36,9 @@ class UsersController < ApplicationController
           errors: @enrollment.zoom_filtered_similar_enrollments.map do |similar|
             puts "filtered similar enrollment #{similar}"
             enrollment = Enrollment.where(uuid: similar['enrollmentIdentifier']).take # access Enrollment table
-            puts "enrollment.user #{enrollment.user}" unless !enrollment || !enrollment.user
+            puts "enrollment.user #{enrollment.user.present?}" 
             next unless enrollment && enrollment.user.present?
-              "Too similar to #{enrollment.user.name}"
+            {message: "Too similar to #{enrollment.user.name}"}
             
 
           end

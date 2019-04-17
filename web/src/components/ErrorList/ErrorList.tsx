@@ -13,7 +13,8 @@ export class ErrorList extends Component<ErrorListProps> {
   printErrors(apiResult:any){
     if (apiResult && apiResult.body){
       let errors = apiResult.body.errors
-      return errors.map((e:Error) => <li key={e.message}>{e.message}</li>)
+      
+      return errors?errors.map((e:Error) => e && <li key={e.message}>{e.message}</li>):<span />
     }
     return <span />
   }
