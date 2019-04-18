@@ -13,12 +13,10 @@ class Enrollment < ApplicationRecord
   def zoom_filtered_similar_enrollments  #find enrollments in our db with the same enrollment uuid. 
     return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
 
-    puts '1: accessed results'
     zoom_similar_enrollments['data']['results'].reject do |enrollment|
         match_level = ZoomSearchMatchLevel.new(enrollment['zoomSearchMatchLevel'])
         match_level.unreliable?
      end.select do |enrollment|
-        puts '3'
         Enrollment.where(uuid: enrollment['enrollmentIdentifier']).any?
       end
   end
@@ -29,33 +27,32 @@ class Enrollment < ApplicationRecord
      return []
     end 
 
-    @@similar_enrollments = Array.new
+    puts "calculating similar enrollments"
+    similar_users_of_enrollments = Array.new
     zoom_similar_enrollments['data']['results'].select do |enrollment|
       unless Enrollment.where(uuid: enrollment['enrollmentIdentifier']).empty? 
-          # puts enrollment['enrollmentIdentifier']
-          @@en = Enrollment.where(uuid: enrollment['enrollmentIdentifier']).first
-          
-          @@enjson = ({
-              name: @@en['name'],
-              mail: @@en['email'],
-              uuid: @@en['uuid'],
+          en = Enrollment.where(uuid: enrollment['enrollmentIdentifier']).first
+          puts "enrollment.user #{en.user.present?}" 
+            next unless en && en.user.present?
+          enjson = ({
+              name: en.user.name,
+              email: en.user.email,
+              uuid: en.uuid,
               matching_score:enrollment['zoomSearchMatchLevel'],
 
           }).to_json
-          @@similar_enrollments.push(@@enjson)
+          similar_users_of_enrollments.push(enjson)
       end
     end
-    return @@similar_enrollments
+    puts "similar_users_of_enrollments: #{similar_users_of_enrollments}"
+    return similar_users_of_enrollments
 
   end
    
 
   def suspected_duplicate?
     return true if !zoom_similar_enrollments['meta']['ok']
-
-    puts "suspected_duplicate? #{zoom_filtered_similar_enrollments.any?}"
-    puts "zoom_filtered_similar_enrollments from suspected duplicates #{zoom_filtered_similar_enrollments}"
-    zoom_filtered_similar_enrollments.any?
+    zoom_users_from_similar_enrollments.any?
   end
 
   private

@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   def create
-    puts 'creating user'
+    puts "creating enrollment"
     @enrollment = Enrollment.new(enrollment_params)
 
     puts 'checking if can save enrollment'
@@ -28,6 +28,9 @@ class UsersController < ApplicationController
 
     puts 'checking for suspected duplicates'
     if @enrollment.suspected_duplicate?
+      puts 'there are suspected duplicates'
+      #puts "similar_enrollments #{@enrollment.zoom_similar_enrollments}"
+      #puts "zoom_filtered_similar_enrollments #{@enrollment.zoom_filtered_similar_enrollments}"
       render(
         status: :conflict,
         json: {
@@ -38,13 +41,13 @@ class UsersController < ApplicationController
             enrollment = Enrollment.where(uuid: similar['enrollmentIdentifier']).take # access Enrollment table
             puts "enrollment.user #{enrollment.user.present?}" 
             next unless enrollment && enrollment.user.present?
-            {message: "Too similar to #{enrollment.user.name}"}
+            {message: "Too similar to registered user: #{enrollment.user.name}, #{enrollment.user.email}, uuid: #{enrollment.uuid}"}
             
 
           end
         }
       )
-      puts "returning"
+      puts "returning - user is not created"
       return
     end
 
