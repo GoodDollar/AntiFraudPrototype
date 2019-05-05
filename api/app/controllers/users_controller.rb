@@ -1,7 +1,9 @@
 class UsersController < ApplicationController
   def create
+    puts "creating enrollment"
     @enrollment = Enrollment.new(enrollment_params)
 
+    puts 'checking if can save enrollment'
     if !@enrollment.save
       render(
         status: :unprocessable_entity,
@@ -10,6 +12,7 @@ class UsersController < ApplicationController
       return
     end
 
+    puts 'enrollment saved. checking if enrollment was successfull'
     if !@enrollment.zoom_enrollment_successful?
       render(
         status: :unprocessable_entity,
@@ -21,23 +24,34 @@ class UsersController < ApplicationController
         }
       )
       return
-    end
+    end 
 
+    puts 'checking for suspected duplicates'
     if @enrollment.suspected_duplicate?
+      puts 'there are suspected duplicates'
+      #puts "similar_enrollments #{@enrollment.zoom_similar_enrollments}"
+      #puts "zoom_filtered_similar_enrollments #{@enrollment.zoom_filtered_similar_enrollments}"
       render(
         status: :conflict,
         json: {
+          similar_enrollments: @enrollment.zoom_similar_enrollments,
+          users_from_similar_enrollments: @enrollment.zoom_users_from_similar_enrollments,
           errors: @enrollment.zoom_filtered_similar_enrollments.map do |similar|
-            enrollment = Enrollment.where(uuid: e['enrollmentIdentifier']).take
+            puts "filtered similar enrollment #{similar}"
+            enrollment = Enrollment.where(uuid: similar['enrollmentIdentifier']).take # access Enrollment table
+            puts "enrollment.user #{enrollment.user.present?}" 
             next unless enrollment && enrollment.user.present?
+            {message: "Too similar to registered user: #{enrollment.user.name}, #{enrollment.user.email}, uuid: #{enrollment.uuid}"}
+            
 
-            "Too similar to #{enrollment.user.name}"
           end
         }
       )
+      puts "returning - user is not created"
       return
     end
 
+    puts "creating new user #{user_params}"
     @user = User.new(user_params)
 
     if !@user.save
@@ -51,7 +65,13 @@ class UsersController < ApplicationController
     @enrollment.user = @user
     @enrollment.save!
 
-    render json: @user
+    puts "user created #{@user.email}"
+    render(
+      status: :ok,
+      json: {
+              user: @user,
+              users_from_similar_enrollments: @enrollment.zoom_users_from_similar_enrollments,
+      })
   end
 
   def login
@@ -78,7 +98,7 @@ class UsersController < ApplicationController
     if !@login_attempt.successful?
       render(
         status: :unauthorized,
-        json: { errors: 'Supplied face does not match that user' }
+        json: { errors: {message: @login_attempt.zoom_authenticate_response} }
       )
       return
     end

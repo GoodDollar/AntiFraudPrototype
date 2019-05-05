@@ -17,7 +17,7 @@ class ZoomSearchMatchLevel
   end
 
   def unreliable?
-    quality != :medium_match
+    (quality != :medium_match)
   end
 
   private

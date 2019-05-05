@@ -7,6 +7,14 @@ import { ErrorList } from "./components/ErrorList/ErrorList";
 import { RegistrationResult } from "./components/RegistrationResult/RegistrationResult";
 import { LoginForm } from "./components/LoginForm/LoginForm";
 import { LoginResult } from "./components/LoginResult/LoginResult";
+import {
+  ApiResponse,
+  ApiClient,
+  ApiError,
+  EnrollResponse,
+  Reply
+} from "./util/ApiClient";
+import { realpathSync } from "fs";
 
 enum Mode {
   Register,
@@ -25,14 +33,14 @@ interface AppState {
     email?: string;
     result?: ZoomCaptureResult;
   };
-  error?: Error;
+  apiResult?: ApiResponse<Reply> | ApiError ;
 }
 
 export class App extends Component<{}, AppState> {
   state: AppState = {
     mode: Mode.Register,
     register: {},
-    login: {}
+    login: {},
   };
 
   async componentDidMount() {
@@ -46,11 +54,12 @@ export class App extends Component<{}, AppState> {
           GoodDollar
           <Nav>
             <NavLink onClick={() => this.setState({ mode: Mode.Register })}>
-              Register
+              Register 
             </NavLink>
             <NavLink onClick={() => this.setState({ mode: Mode.Login })}>
               Log In
             </NavLink>
+           
           </Nav>
         </Header>
 
@@ -79,6 +88,7 @@ export class App extends Component<{}, AppState> {
                     name={this.state.register.name}
                     result={this.state.register.result}
                     onApiError={this.handleError.bind(this)}
+                    printSimilarUsersResults={this.printSimilarUsersResults.bind(this)}
                   />
                 )}
               </>
@@ -109,24 +119,34 @@ export class App extends Component<{}, AppState> {
           </>
         )}
 
-        {this.state.mode == Mode.Error && <ErrorList errors={this.errors()} />}
+        {this.state.mode == Mode.Error && <ErrorList apiResult={this.apiResult()} printSimilarUsersResults={this.printSimilarUsersResults} />}
       </Wrapper>
     );
-  }
+  } 
 
   // errors
-  private errors(): string[] {
-    if (!this.state.error) {
-      return [];
-    }
-
-    return [this.state.error.message];
+  private apiResult(): ApiResponse<Reply> | undefined {
+    if (!this.state.apiResult)
+      return undefined
+    return this.state.apiResult;
   }
 
-  private handleError(error: Error) {
+  private printSimilarUsersResults(apiResult:ApiResponse<Reply>  | undefined): JSX.Element {
+    if (apiResult){
+      //apiResult = apiResult as ApiResponse<Reply>
+      var enrollResponse = apiResult.body as EnrollResponse
+      if (enrollResponse && enrollResponse.users_from_similar_enrollments){
+            return(<div>{enrollResponse.users_from_similar_enrollments.map((r:any,i:number)=> <pre key={i}>{r}</pre>)}</div>)
+      }
+    }
+
+    return <span />
+  }
+
+  private handleError(error: ApiResponse<Reply>) {
     this.setState({
       mode: Mode.Error,
-      error,
+      apiResult:error,
       register: {},
       login: {}
     });

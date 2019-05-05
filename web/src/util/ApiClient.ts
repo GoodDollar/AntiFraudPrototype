@@ -1,3 +1,5 @@
+import { defaultCipherList } from "constants";
+
 enum ApiMethod {
   Get = "GET",
   Post = "POST",
@@ -6,13 +8,26 @@ enum ApiMethod {
   Delete = "DELETE"
 }
 
-export class ApiError extends Error {}
+export class ApiError implements ApiResponse<Reply> {
+  status: number;
+  headers: Headers;
+  body: Reply;
+  errors:Error;
+
+  constructor(status:number, headers:Headers, body:Reply | undefined , errors:Error){
+    this.status = status
+    this.headers = headers
+    this.body = body?body:{}
+    this.errors = errors
+
+  }
+}
 
 export interface ApiRequest<Body> {
   method: ApiMethod;
   endpoint: string;
   body: Body;
-}
+ }
 
 export interface ApiResponse<Reply> {
   status: number;
@@ -28,7 +43,11 @@ export interface EnrollRequest {
   auditTrailImage: Blob;
 }
 
-export interface EnrollResponse {}
+export interface EnrollResponse extends Reply{
+    users_from_similar_enrollments:[];
+    similar_enrollments:[];
+}
+
 
 export interface LoginRequest {
   email: string;
@@ -39,18 +58,20 @@ export interface LoginRequest {
 
 export interface LoginResponse {}
 
+export interface Reply {}
 export class ApiClient {
   private readonly baseUrl =
     process.env.REACT_APP_API_URL || "http://localhost:3001";
 
-  async enroll(e: EnrollRequest): Promise<ApiResponse<EnrollResponse>> {
+    async enroll(e: EnrollRequest): Promise<ApiResponse<Reply>> {
     const request: ApiRequest<EnrollRequest> = {
       method: ApiMethod.Post,
       endpoint: "/users",
       body: e
     };
-
-    return this.request(request);
+    let result = this.request(request);
+    console.log({result})
+    return result
   }
 
   async login(e: LoginRequest): Promise<ApiResponse<LoginResponse>> {
@@ -91,21 +112,32 @@ export class ApiClient {
     }
 
     const response = await fetch(`${this.baseUrl}${req.endpoint}`, opts);
+    const json = await response.json();
 
     if (
       response.status !== 200 &&
       response.status !== 201 &&
       response.status !== 204
     ) {
-      throw new ApiError(`HTTP ${response.status}: ${await response.text()}`);
+      //throw new ApiError(`HTTP ${response.status}: ${await response.text()}`);
+      //let message = `HTTP ${response.status}: ${await response.text()}`
+      //let error = new Error(message)
+      // throw new ApiError(response.status,response.headers,response.body?response.body:{},error);
+      const apiError: ApiResponse<Reply> = {
+        status: response.status,
+        headers: response.headers,
+        body: json,
+  
+      };
+      throw apiError
     }
 
-    const json = await response.json();
 
     const output: ApiResponse<Reply> = {
       status: response.status,
       headers: response.headers,
-      body: json
+      body: json,
+
     };
 
     return output;

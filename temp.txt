@@ -1,0 +1,35 @@
+#self.zoom_users			_from_similar_enrollments = 
+      if (enrollment['enrollmentIdentifier']) {
+        Enrollment.where(uuid: enrollment['enrollmentIdentifier']).map {|en| 
+            en.try(:'.',' email')
+              #json: {
+              # zoom_id: enrollment['enrollmentIdentifier'],
+              # system_user: e.user,
+              # matching_score:enrollment['zoomSearchMatchLevel']
+              #}   
+        }
+      }
+
+
+
+
+       def zoom_users_from_similar_enrollments
+      return [] unless zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
+
+        zoom_similar_enrollments['data']['results'].map do |enrollment|
+          enrollment.tap do |e|
+            e['zoomSearchMatchLevel'] = ZoomSearchMatchLevel.new(e['zoomSearchMatchLevel'])
+          end
+        puts 'calculating zoom_users_from_similar_enrollments'
+        puts enrollment 
+        end.select do |enrollment|
+          enrollment.tap do |e|
+            if enrollment['enrollmentIdentifier'] do
+                puts 'yayi'
+            end
+          end
+          
+        end
+      end
+    end
+  end

@@ -9,6 +9,7 @@ require "active_record/railtie"
 require "action_controller/railtie"
 # require "action_mailer/railtie"
 require "action_view/railtie"
+require 'yaml'
 # require "action_cable/engine"
 # require "sprockets/railtie"
 # require "rails/test_unit/railtie"
@@ -19,6 +20,15 @@ Bundler.require(*Rails.groups)
 
 module GdAntiFraudApi
   class Application < Rails::Application
+
+    def load!(path)
+      environment = defined?(Rails) ? Rails.env : ENV["RACK_ENV"]
+      settings = YAML.load(ERB.new(File.new(path).read).result)[environment]
+      if settings.present?
+        from_hash(settings)
+      end
+    end
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2
 
@@ -48,5 +58,10 @@ module GdAntiFraudApi
         resource '*', headers: :any, methods: [:get, :post, :options]
       end
     end
+
+    #load!('../.env')
+
+ 
+
   end
 end

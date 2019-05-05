@@ -70,6 +70,7 @@ export const capture = async (
 
         const zoomSession = new ZoomSDK.ZoomSession(
           (result: ZoomCaptureResult) => {
+
             if (
               result.status !==
                 ZoomSDK.ZoomTypes.ZoomCaptureResult.SessionCompleted ||
@@ -93,4 +94,4 @@ export const capture = async (
   });
 
 const auditTrailImageToBlob = async (auditTrailImage: string): Promise<Blob> =>
-  (await fetch(auditTrailImage)).blob();
+  (await fetch(auditTrailImage)).blob(); // because this is a data url (it's all local) - efficent way to convert to binary process

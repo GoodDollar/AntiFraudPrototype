@@ -4,7 +4,8 @@ import {
   ApiResponse,
   ApiClient,
   ApiError,
-  EnrollResponse
+  EnrollResponse,
+  Reply
 } from "../../util/ApiClient";
 
 interface RegistrationResultProps {
@@ -12,11 +13,12 @@ interface RegistrationResultProps {
   email: string;
   result: ZoomCaptureResult;
   onApiError: (error: ApiError) => void;
+  printSimilarUsersResults: (apiResult:any) => JSX.Element;
 }
 
 interface RegistrationResultState {
   loading: boolean;
-  apiResult?: ApiResponse<EnrollResponse>;
+  apiResult?: ApiResponse<Reply>;
 }
 
 export class RegistrationResult extends Component<
@@ -46,11 +48,13 @@ export class RegistrationResult extends Component<
     }
   }
 
+
+
   render() {
     if (this.state.loading) {
       return <p>Loading...</p>;
     }
-
-    return <div>{JSON.stringify(this.state.apiResult)}</div>;
+    let results = this.state.apiResult
+    return this.props.printSimilarUsersResults(results)
   }
 }
