@@ -79,7 +79,7 @@ class UsersController < ApplicationController
 
     if !@user
       render(
-        head: :not_found,
+        status: :not_found,
         json: { errors: 'No user found with that email address' }
       )
       return
@@ -89,7 +89,7 @@ class UsersController < ApplicationController
 
     if !@login_attempt.save
       render(
-        head: :unprocessable_entity,
+        status: :unprocessable_entity,
         json: { errors: @login_attempt.errors.full_messages }
       )
       return
@@ -97,8 +97,8 @@ class UsersController < ApplicationController
 
     if !@login_attempt.successful?
       render(
-        head: :unauthorized,
-        json: { errors: 'Supplied face does not match that user' }
+        status: :unauthorized,
+        json: { errors: {message: @login_attempt.zoom_authenticate_response} }
       )
       return
     end
