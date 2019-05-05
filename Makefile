@@ -3,7 +3,7 @@ deploy-api:
 
 deploy-web:
 	cd web && \
-	now --build-env REACT_APP_ZOOM_LICENSE_KEY=d4QcD1WU4s5srMoJeDe2YDIIvy2AaMI0 --build-env REACT_APP_API_URL=http://localhost:3001 && \
+	now --build-env REACT_APP_ZOOM_LICENSE_KEY=dmm5F80v71kkNcm3inG3DcAUadIlE5K4 --build-env REACT_APP_API_URL=http://localhost:3001 && \
 	now alias
 
 
