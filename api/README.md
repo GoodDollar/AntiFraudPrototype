@@ -15,7 +15,7 @@ This is a simple Ruby on Rails application to provide an API for the anti-fraud 
 2. Run `bundle install` to obtain dependencies
 3. Run `bundle exec rails db:create` to create a new Postgres database
 4. Run `bundle exec rails db:migrate` to build DB schema
-5. Run `bundle exec rails server --port 3001` to launch the application on port 3000
+5. Run `bundle exec rails server --port 3002` to launch the application on port 3000
 
 
 ## Deployment to now.sh

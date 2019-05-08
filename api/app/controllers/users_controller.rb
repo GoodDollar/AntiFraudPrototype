@@ -14,12 +14,15 @@ class UsersController < ApplicationController
 
     puts 'enrollment saved. checking if enrollment was successfull'
     if !@enrollment.zoom_enrollment_successful?
+      puts 'zoom enrollment failed'
       render(
         status: :unprocessable_entity,
         json: {
+          duplicates:@enrollment.zoom_similar_enrollments.try(:[], 'data').try(:[], 'results').present?,
+          livenessFailed:!@enrollment.zoom_enrollment_response.try(:[], 'meta').try(:[], 'ok'),
           errors: [
             @enrollment.zoom_enrollment_response.try(:[], 'meta').try(:[], 'message'),
-            @enrollment.zoom_similar_enrollments.try(:[], 'meta').try(:[], 'message')
+            @enrollment.zoom_similar_enrollments.try(:[], 'data').try(:[], 'results')
           ].reject(&:blank?)
         }
       )

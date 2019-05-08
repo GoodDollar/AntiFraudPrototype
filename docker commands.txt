@@ -1,0 +1,3 @@
+docker run --rm  --name gd-anti-fraud-api -e POSTGRES_PASSWORD=gooddollar -d -p 5432:5432 --volumes-from PostgresData postgres
+docker-machine ip
+docker create -v /var/lib/postgresql/data --name PostgresData alpine
