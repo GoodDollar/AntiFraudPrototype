@@ -37,6 +37,8 @@ class UsersController < ApplicationController
       render(
         status: :conflict,
         json: {
+          livenessFailed: false,
+          duplicates: true,
           similar_enrollments: @enrollment.zoom_similar_enrollments,
           users_from_similar_enrollments: @enrollment.zoom_users_from_similar_enrollments,
           errors: @enrollment.zoom_filtered_similar_enrollments.map do |similar|
